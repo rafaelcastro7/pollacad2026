@@ -104,9 +104,11 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
+            pattern="[0-9]*"
             disabled={readOnly}
             value={local}
-            onChange={(e) => setLocal(e.target.value)}
+            onKeyDown={allowOnlyDigits}
+            onChange={(e) => setLocal(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
             aria-label={`Goles ${match.equipo_local}`}
           />
@@ -116,9 +118,11 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
+            pattern="[0-9]*"
             disabled={readOnly}
             value={visit}
-            onChange={(e) => setVisit(e.target.value)}
+            onKeyDown={allowOnlyDigits}
+            onChange={(e) => setVisit(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
             aria-label={`Goles ${match.equipo_visitante}`}
           />
