@@ -207,16 +207,10 @@ function Inscripciones() {
               {filtered.map((p) => (
                 <tr key={p.id} className="border-b border-border/60">
                   <td className="p-3 font-medium">{p.nombre}</td>
-                  <td className="p-3 text-muted-foreground">{p.email ?? "—"}</td>
                   <td className="p-3">
                     <span className={`rounded-full border px-2 py-0.5 text-xs ${ESTADO_BADGE[p.estado_pago]}`}>
                       {ESTADO_EMOJI[p.estado_pago]} {p.estado_pago}
                     </span>
-                  </td>
-                  <td className="p-3">
-                    <Button variant="ghost" size="sm" onClick={() => viewProof(p.comprobante_url)}>
-                      <Eye className="size-4" /> Ver
-                    </Button>
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
