@@ -35,7 +35,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function Navbar() {
-  const { user, participant, signOut } = useAuth();
+  const { user, participant, isAdmin, signOut } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -45,7 +45,7 @@ export function Navbar() {
     router.navigate({ to: "/" });
   };
 
-  const name = participant?.nombre ?? user?.email ?? "";
+  const name = participant?.nombre ?? (isAdmin ? "Organizador" : user?.email ?? "");
   const initial = (name || "?").charAt(0).toUpperCase();
 
   return (
