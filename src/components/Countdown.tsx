@@ -14,12 +14,27 @@ function Unit({ value, label }: { value: number; label: string }) {
 }
 
 export function Countdown() {
+  const [mounted, setMounted] = useState(false);
   const [cd, setCd] = useState<CD>(() => countdownTo(TOURNAMENT_START_UTC));
 
   useEffect(() => {
+    setMounted(true);
+    setCd(countdownTo(TOURNAMENT_START_UTC));
     const t = setInterval(() => setCd(countdownTo(TOURNAMENT_START_UTC)), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Avoid SSR/client hydration mismatch: render placeholder until mounted.
+  if (!mounted) {
+    return (
+      <div className="flex items-end justify-center gap-2 sm:gap-4">
+        <Unit value={0} label="Días" />
+        <Unit value={0} label="Horas" />
+        <Unit value={0} label="Min" />
+        <Unit value={0} label="Seg" />
+      </div>
+    );
+  }
 
   if (cd.done) {
     return (
