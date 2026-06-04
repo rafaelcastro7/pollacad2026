@@ -35,7 +35,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function Navbar() {
-  const { user, participant, signOut } = useAuth();
+  const { user, participant, isAdmin, signOut } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -45,7 +45,7 @@ export function Navbar() {
     router.navigate({ to: "/" });
   };
 
-  const name = participant?.nombre ?? user?.email ?? "";
+  const name = participant?.nombre ?? (isAdmin ? "Organizador" : user?.email ?? "");
   const initial = (name || "?").charAt(0).toUpperCase();
 
   return (
@@ -67,7 +67,10 @@ export function Navbar() {
                 <div className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
                   {initial}
                 </div>
-                <span className="max-w-[140px] truncate text-sm text-muted-foreground">{name}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="max-w-[160px] truncate text-sm text-foreground">{name}</span>
+                  {isAdmin && <span className="text-[10px] uppercase tracking-wide text-gold">Organizador</span>}
+                </div>
               </div>
               <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Cerrar sesión">
                 <LogOut className="size-4" />
