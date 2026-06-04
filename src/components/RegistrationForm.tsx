@@ -119,10 +119,6 @@ export function RegistrationForm() {
           <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="tel">Teléfono / WhatsApp</Label>
-          <Input id="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+1 ..." />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
         </div>
