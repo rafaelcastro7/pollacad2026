@@ -138,18 +138,7 @@ function Inscripciones() {
 
   const filtered = parts.filter((p) => filter === "todos" || p.estado_pago === filter);
 
-  const viewProof = async (path: string | null) => {
-    if (!path) {
-      toast.error("Sin comprobante.");
-      return;
-    }
-    const { data, error } = await supabase.storage.from("comprobantes").createSignedUrl(path, 120);
-    if (error || !data) {
-      toast.error("No se pudo abrir el comprobante.");
-      return;
-    }
-    setProof(data.signedUrl);
-  };
+
 
   const apply = async () => {
     if (!confirm) return;
