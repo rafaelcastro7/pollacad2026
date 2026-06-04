@@ -17,6 +17,22 @@ function clampScore(v: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+function filterDigits(v: string): string {
+  return v.replace(/\D/g, "");
+}
+
+function allowOnlyDigits(e: React.KeyboardEvent<HTMLInputElement>) {
+  const key = e.key;
+  if (
+    key === "Backspace" || key === "Delete" || key === "Tab" ||
+    key === "ArrowLeft" || key === "ArrowRight" || key === "Home" || key === "End" ||
+    /^[0-9]$/.test(key)
+  ) {
+    return;
+  }
+  e.preventDefault();
+}
+
 export function PredictionCard({
   match,
   prediction,
