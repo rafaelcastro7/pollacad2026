@@ -18,7 +18,6 @@ export function RegistrationForm() {
   const { refresh } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = useState("");
-  const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
