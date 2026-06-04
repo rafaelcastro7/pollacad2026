@@ -17,6 +17,22 @@ function clampScore(v: string): number | null {
   return Number.isNaN(n) ? null : n;
 }
 
+function filterDigits(v: string): string {
+  return v.replace(/\D/g, "");
+}
+
+function allowOnlyDigits(e: React.KeyboardEvent<HTMLInputElement>) {
+  const key = e.key;
+  if (
+    key === "Backspace" || key === "Delete" || key === "Tab" ||
+    key === "ArrowLeft" || key === "ArrowRight" || key === "Home" || key === "End" ||
+    /^[0-9]$/.test(key)
+  ) {
+    return;
+  }
+  e.preventDefault();
+}
+
 export function PredictionCard({
   match,
   prediction,
@@ -88,9 +104,11 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
+            pattern="[0-9]*"
             disabled={readOnly}
             value={local}
-            onChange={(e) => setLocal(e.target.value)}
+            onKeyDown={allowOnlyDigits}
+            onChange={(e) => setLocal(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
             aria-label={`Goles ${match.equipo_local}`}
           />
@@ -100,9 +118,11 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
+            pattern="[0-9]*"
             disabled={readOnly}
             value={visit}
-            onChange={(e) => setVisit(e.target.value)}
+            onKeyDown={allowOnlyDigits}
+            onChange={(e) => setVisit(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
             aria-label={`Goles ${match.equipo_visitante}`}
           />
