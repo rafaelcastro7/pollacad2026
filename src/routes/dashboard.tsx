@@ -6,7 +6,7 @@ import { useMatches, useMyPredictions, useLeaderboard } from "@/hooks/useData";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
-import { formatET, formatUTC, isLocked, formatCAD } from "@/lib/format";
+import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
 import { getMatchStatus } from "@/lib/matchStatus";
 import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
