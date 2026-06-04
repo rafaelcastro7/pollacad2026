@@ -1,0 +1,252 @@
+import { useMemo } from "react";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { Loader2, Trophy, Target, ListChecks, Coins, ArrowRight } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useMatches, useMyPredictions, useLeaderboard } from "@/hooks/useData";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { flag } from "@/lib/flags";
+import { formatET, formatUTC, isLocked, formatCAD } from "@/lib/format";
+import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
+import { getMatchStatus } from "@/lib/matchStatus";
+import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
+
+export const Route = createFileRoute("/dashboard")({
+  head: () => ({ meta: [{ title: "Mi panel — Polla Mundial 2026" }] }),
+  component: Dashboard,
+});
+
+function Centered({ children }: { children: React.ReactNode }) {
+  return <main className="mx-auto flex min-h-[70vh] max-w-md items-center px-4">{children}</main>;
+}
+
+function Dashboard() {
+  const router = useRouter();
+  const { user, participant, loading, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <Centered>
+        <Loader2 className="mx-auto size-6 animate-spin text-muted-foreground" />
+      </Centered>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Centered>
+        <Card className="w-full border-border bg-card p-8 text-center card-shadow">
+          <p className="text-foreground">Debes iniciar sesión.</p>
+          <Button className="mt-4" onClick={() => router.navigate({ to: "/login" })}>
+            Iniciar sesión
+          </Button>
+        </Card>
+      </Centered>
+    );
+  }
+
+  const estado = participant?.estado_pago ?? "pendiente";
+
+  if (estado === "pendiente") {
+    return (
+      <Centered>
+        <Card className="w-full border-gold/40 bg-gold/5 p-8 text-center card-shadow">
+          <div className="text-4xl">⏳</div>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">Pago en verificación</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Tu pago está siendo verificado. Volverás en breve.
+          </p>
+          <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => router.navigate({ to: "/" }))}>
+            Cerrar sesión
+          </Button>
+        </Card>
+      </Centered>
+    );
+  }
+
+  if (estado === "rechazado") {
+    return (
+      <Centered>
+        <Card className="w-full border-destructive/40 bg-destructive/5 p-8 text-center card-shadow">
+          <div className="text-4xl">❌</div>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">Pago rechazado</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Tu pago fue rechazado. Contacta a dgc75@hotmail.com
+          </p>
+          <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => router.navigate({ to: "/" }))}>
+            Cerrar sesión
+          </Button>
+        </Card>
+      </Centered>
+    );
+  }
+
+  return <ApprovedDashboard participantId={participant!.id} nombre={participant!.nombre} />;
+}
+
+function ApprovedDashboard({ participantId, nombre }: { participantId: string; nombre: string }) {
+  const { data: matches = [] } = useMatches();
+  const { data: preds = [] } = useMyPredictions(participantId);
+  const { data: leaderboard = [] } = useLeaderboard();
+
+  const predByMatch = useMemo(() => {
+    const m = new Map<number, (typeof preds)[number]>();
+    for (const p of preds) m.set(p.match_id, p);
+    return m;
+  }, [preds]);
+
+  const myRow = leaderboard.find((r) => r.participant_id === participantId);
+  const totalPot = leaderboard.length * ENTRY_FEE;
+  const prizes = useMemo(() => calculatePrizes(leaderboard, totalPot), [leaderboard, totalPot]);
+  const myPrize = prizes[participantId] ?? 0;
+
+  const predicted = preds.filter((p) => p.goles_local_pred != null && p.goles_visitante_pred != null).length;
+
+  const now = Date.now();
+  const upcoming = matches
+    .filter((m) => !isLocked(m.kickoff_time, now))
+    .filter((m) => {
+      const p = predByMatch.get(m.id);
+      return !p || p.goles_local_pred == null;
+    })
+    .slice(0, 3);
+
+  const recent = matches
+    .filter((m) => m.goles_local != null && m.goles_visitante != null)
+    .sort((a, b) => new Date(b.kickoff_time).getTime() - new Date(a.kickoff_time).getTime())
+    .slice(0, 5);
+
+  const top5 = leaderboard.slice(0, 5);
+
+  const stats = [
+    { icon: Trophy, label: "Total puntos", value: myRow?.total_puntos ?? 0, gold: true },
+    {
+      icon: Target,
+      label: "Posición",
+      value: myRow ? `${MEDALS[myRow.posicion] ?? ""} ${positionLabel(myRow.posicion, leaderboard)}` : "—",
+    },
+    { icon: ListChecks, label: "Pronosticados", value: `${predicted} / ${TOTAL_MATCHES}` },
+    { icon: Coins, label: "Premio proyectado", value: formatCAD(myPrize), gold: true },
+  ];
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-8">
+      <h1 className="font-display text-4xl tracking-wide">
+        Hola, <span className="gold-gradient-text">{nombre}</span>
+      </h1>
+
+      {/* STATS */}
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((s, i) => (
+          <Card key={i} className="border-border bg-card p-5 card-shadow">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <s.icon className="size-4" />
+              <span className="text-xs uppercase tracking-wider">{s.label}</span>
+            </div>
+            <div className={`mt-2 font-display text-3xl ${s.gold ? "text-gold" : "text-foreground"}`}>
+              {s.value}
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      {/* NEXT MATCHES */}
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-2xl tracking-wide">Próximos por pronosticar</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/predictions">Ver todos <ArrowRight className="size-4" /></Link>
+          </Button>
+        </div>
+        {upcoming.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">¡Estás al día con tus pronósticos! 🎉</p>
+        ) : (
+          <div className="mt-4 flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+            {upcoming.map((m) => (
+              <Card key={m.id} className="min-w-[260px] border-border bg-card p-5 card-shadow">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Grupo {m.grupo}</span>
+                  <span>Partido #{m.numero_partido}</span>
+                </div>
+                <div className="mt-3 flex items-center justify-center gap-2 text-center">
+                  <span className="flex-1 text-sm font-medium">{flag(m.equipo_local)} {m.equipo_local}</span>
+                  <span className="text-muted-foreground">vs</span>
+                  <span className="flex-1 text-sm font-medium">{m.equipo_visitante} {flag(m.equipo_visitante)}</span>
+                </div>
+                <p className="mt-3 text-center text-xs text-muted-foreground">{formatET(m.kickoff_time)}</p>
+                <Button asChild variant="hero" size="sm" className="mt-4 w-full">
+                  <Link to="/predictions">PRONOSTICAR <ArrowRight className="size-4" /></Link>
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        {/* RECENT RESULTS */}
+        <section>
+          <h2 className="font-display text-2xl tracking-wide">Resultados recientes</h2>
+          {recent.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">Aún no hay resultados.</p>
+          ) : (
+            <Card className="mt-4 divide-y divide-border border-border bg-card card-shadow">
+              {recent.map((m) => {
+                const p = predByMatch.get(m.id) ?? null;
+                const st = getMatchStatus(m, p);
+                const ptColor =
+                  st.key === "exacto" ? "text-primary" : st.key === "ganador" ? "text-success" : "text-muted-foreground";
+                return (
+                  <div key={m.id} className="flex items-center justify-between gap-3 p-4 text-sm">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate">
+                        {flag(m.equipo_local)} {m.equipo_local} vs {m.equipo_visitante} {flag(m.equipo_visitante)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Tu: {p?.goles_local_pred ?? "–"}–{p?.goles_visitante_pred ?? "–"} · Real:{" "}
+                        <span className="text-gold">{m.goles_local}–{m.goles_visitante}</span>
+                      </p>
+                    </div>
+                    <span className={`font-display text-xl ${ptColor}`}>+{p?.puntos_obtenidos ?? 0}</span>
+                  </div>
+                );
+              })}
+            </Card>
+          )}
+        </section>
+
+        {/* QUICK LEADERBOARD */}
+        <section>
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-2xl tracking-wide">Top 5</h2>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/leaderboard">Tabla completa <ArrowRight className="size-4" /></Link>
+            </Button>
+          </div>
+          <Card className="mt-4 divide-y divide-border border-border bg-card card-shadow">
+            {top5.length === 0 ? (
+              <p className="p-4 text-sm text-muted-foreground">Aún no hay participantes.</p>
+            ) : (
+              top5.map((r) => (
+                <div
+                  key={r.participant_id}
+                  className={`flex items-center justify-between gap-3 p-4 text-sm ${
+                    r.participant_id === participantId ? "bg-info/10" : ""
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="w-8 font-display text-lg text-muted-foreground">
+                      {MEDALS[r.posicion] ?? r.posicion}
+                    </span>
+                    <span className="truncate font-medium">{r.nombre}</span>
+                  </span>
+                  <span className="font-display text-lg text-gold">{r.total_puntos}</span>
+                </div>
+              ))
+            )}
+          </Card>
+        </section>
+      </div>
+    </main>
+  );
+}
