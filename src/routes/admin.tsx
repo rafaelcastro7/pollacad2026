@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Users, ClipboardList, Wallet } from "lucide-react";
+import { Loader2, Users, ClipboardList, Wallet, Eye } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { flag } from "@/lib/flags";
 import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS } from "@/lib/prizes";
@@ -129,6 +136,7 @@ function Inscripciones() {
   const [filter, setFilter] = useState<"todos" | "pendiente" | "aprobado" | "rechazado">("todos");
   
   const [confirm, setConfirm] = useState<{ p: Participant; estado: "aprobado" | "rechazado" } | null>(null);
+  const [detail, setDetail] = useState<Participant | null>(null);
 
   const counts = {
     pendiente: parts.filter((p) => p.estado_pago === "pendiente").length,
@@ -214,6 +222,9 @@ function Inscripciones() {
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => setDetail(p)}>
+                        <Eye className="size-4" />
+                      </Button>
                       <Button
                         variant="hero"
                         size="sm"
@@ -267,7 +278,136 @@ function Inscripciones() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Drill-down: detalle del participante */}
+      <ParticipantDetailDialog participant={detail} onClose={() => setDetail(null)} />
     </div>
+  );
+}
+
+/* ---------------- Drill-down de participante ---------------- */
+
+type DetailRow = {
+  match_id: number;
+  numero_partido: number;
+  jornada: number;
+  equipo_local: string;
+  equipo_visitante: string;
+  grupo: string;
+  kickoff_time: string;
+  goles_local: number | null;
+  goles_visitante: number | null;
+  goles_local_pred: number | null;
+  goles_visitante_pred: number | null;
+  puntos_obtenidos: number | null;
+};
+
+const PTS_BADGE: Record<number, string> = {
+  3: "bg-primary/15 text-primary border-primary/40",
+  1: "bg-success/10 text-success border-success/30",
+  0: "bg-destructive/15 text-destructive border-destructive/40",
+};
+
+function ParticipantDetailDialog({
+  participant,
+  onClose,
+}: {
+  participant: Participant | null;
+  onClose: () => void;
+}) {
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["participant-detail", participant?.id],
+    enabled: !!participant,
+    queryFn: async (): Promise<DetailRow[]> => {
+      const { data, error } = await supabase.rpc("get_participant_predictions", {
+        _participant_id: participant!.id,
+      });
+      if (error) throw error;
+      return (data ?? []) as DetailRow[];
+    },
+  });
+
+  const predichos = rows.filter(
+    (r) => r.goles_local_pred != null && r.goles_visitante_pred != null,
+  ).length;
+  const totalPuntos = rows.reduce((s, r) => s + (r.puntos_obtenidos ?? 0), 0);
+  const exactos = rows.filter((r) => (r.puntos_obtenidos ?? 0) === 3).length;
+
+  const notApproved = participant && participant.estado_pago !== "aprobado";
+
+  return (
+    <Dialog open={!!participant} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto border-border bg-card sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl tracking-wide">
+            {participant?.nombre}
+          </DialogTitle>
+          <DialogDescription>
+            {predichos} pronósticos · {totalPuntos} pts · {exactos} exactos
+          </DialogDescription>
+        </DialogHeader>
+
+        {notApproved ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Este participante no está aprobado, por lo que no tiene pronósticos disponibles.
+          </p>
+        ) : isLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="p-2">#</th>
+                <th className="p-2">Partido</th>
+                <th className="p-2 text-center">Pronóstico</th>
+                <th className="p-2 text-center">Resultado</th>
+                <th className="p-2 text-right">Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => {
+                const hasPred = r.goles_local_pred != null && r.goles_visitante_pred != null;
+                const hasResult = r.goles_local != null && r.goles_visitante != null;
+                return (
+                  <tr key={r.match_id} className="border-b border-border/60">
+                    <td className="p-2 text-muted-foreground">{r.numero_partido}</td>
+                    <td className="p-2">
+                      {flag(r.equipo_local)} {r.equipo_local} vs {r.equipo_visitante} {flag(r.equipo_visitante)}
+                    </td>
+                    <td className="p-2 text-center font-medium">
+                      {hasPred ? `${r.goles_local_pred} — ${r.goles_visitante_pred}` : "—"}
+                    </td>
+                    <td className="p-2 text-center text-muted-foreground">
+                      {hasResult ? `${r.goles_local} — ${r.goles_visitante}` : "—"}
+                    </td>
+                    <td className="p-2 text-right">
+                      {hasResult && hasPred ? (
+                        <span
+                          className={`rounded-full border px-2 py-0.5 text-xs ${PTS_BADGE[r.puntos_obtenidos ?? 0]}`}
+                        >
+                          {r.puntos_obtenidos ?? 0}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                    Sin partidos.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
