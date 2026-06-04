@@ -123,13 +123,6 @@ export type Database = {
             foreignKeyName: "predictions_participant_id_fkey"
             columns: ["participant_id"]
             isOneToOne: false
-            referencedRelation: "leaderboard"
-            referencedColumns: ["participant_id"]
-          },
-          {
-            foreignKeyName: "predictions_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
             referencedRelation: "participants"
             referencedColumns: ["id"]
           },
@@ -155,19 +148,20 @@ export type Database = {
       }
     }
     Views: {
-      leaderboard: {
-        Row: {
-          exactos: number | null
-          ganadores: number | null
-          nombre: string | null
-          participant_id: string | null
-          posicion: number | null
-          total_puntos: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: never
+        Returns: {
+          exactos: number
+          ganadores: number
+          nombre: string
+          participant_id: string
+          posicion: number
+          total_puntos: number
+        }[]
+      }
       get_participant_predictions: {
         Args: { _participant_id: string }
         Returns: {
