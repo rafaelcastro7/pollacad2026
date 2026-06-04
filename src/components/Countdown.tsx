@@ -2,13 +2,26 @@ import { useEffect, useState } from "react";
 import { countdownTo, type Countdown as CD } from "@/lib/format";
 import { TOURNAMENT_START_UTC } from "@/lib/constants";
 
-function Unit({ value, label }: { value: number; label: string }) {
+function Unit({ value, label, accent = false }: { value: number; label: string; accent?: boolean }) {
+  const text = value.toString().padStart(2, "0");
   return (
     <div className="flex flex-col items-center">
-      <div className="min-w-[64px] rounded-xl border border-border bg-card px-3 py-2 text-center font-display text-4xl text-gold tabular-nums sm:min-w-[84px] sm:text-5xl">
-        {value.toString().padStart(2, "0")}
+      <div
+        className={`glass-card relative flex h-20 w-16 items-center justify-center overflow-hidden rounded-xl font-display text-3xl tabular-nums shadow-2xl sm:h-28 sm:w-24 sm:text-5xl ${
+          accent ? "text-primary" : "text-gold"
+        }`}
+      >
+        {/* glossy top sheen */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/30" />
+        {/* center split line */}
+        <div className="pointer-events-none absolute left-0 top-1/2 h-px w-full bg-white/10" />
+        <span key={text} className="digit-pop relative">
+          {text}
+        </span>
       </div>
-      <span className="mt-2 text-xs uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
     </div>
   );
 }
@@ -27,27 +40,25 @@ export function Countdown() {
   // Avoid SSR/client hydration mismatch: render placeholder until mounted.
   if (!mounted) {
     return (
-      <div className="flex items-end justify-center gap-2 sm:gap-4">
+      <div className="flex items-end justify-center gap-3 sm:gap-5">
         <Unit value={0} label="Días" />
         <Unit value={0} label="Horas" />
         <Unit value={0} label="Min" />
-        <Unit value={0} label="Seg" />
+        <Unit value={0} label="Seg" accent />
       </div>
     );
   }
 
   if (cd.done) {
-    return (
-      <p className="font-display text-3xl text-primary">¡El torneo ha comenzado! ⚽</p>
-    );
+    return <p className="font-display text-3xl text-primary">¡El torneo ha comenzado! ⚽</p>;
   }
 
   return (
-    <div className="flex items-end justify-center gap-2 sm:gap-4">
+    <div className="flex items-end justify-center gap-3 sm:gap-5">
       <Unit value={cd.days} label="Días" />
       <Unit value={cd.hours} label="Horas" />
       <Unit value={cd.minutes} label="Min" />
-      <Unit value={cd.seconds} label="Seg" />
+      <Unit value={cd.seconds} label="Seg" accent />
     </div>
   );
 }
