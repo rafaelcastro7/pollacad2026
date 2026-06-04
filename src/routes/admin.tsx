@@ -136,6 +136,7 @@ function Inscripciones() {
   const [filter, setFilter] = useState<"todos" | "pendiente" | "aprobado" | "rechazado">("todos");
   
   const [confirm, setConfirm] = useState<{ p: Participant; estado: "aprobado" | "rechazado" } | null>(null);
+  const [detail, setDetail] = useState<Participant | null>(null);
 
   const counts = {
     pendiente: parts.filter((p) => p.estado_pago === "pendiente").length,
