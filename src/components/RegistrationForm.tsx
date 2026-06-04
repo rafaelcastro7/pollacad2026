@@ -1,7 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { UploadCloud, FileCheck2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,43 +9,31 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
-
-const MAX_SIZE = 5 * 1024 * 1024;
-const ACCEPTED = ["image/jpeg", "image/png", "application/pdf"];
+import { ALIAS_RE, PIN_RE, aliasToEmail, pinToPassword } from "@/lib/auth";
 
 export function RegistrationForm() {
   const router = useRouter();
   const { refresh } = useAuth();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [alias, setAlias] = useState("");
+  const [pin, setPin] = useState("");
+  const [pin2, setPin2] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
 
-  const pickFile = (f: File | null) => {
-    if (!f) return;
-    if (!ACCEPTED.includes(f.type)) {
-      toast.error("Formato no válido. Sube JPG, PNG o PDF.");
-      return;
-    }
-    if (f.size > MAX_SIZE) {
-      toast.error("El archivo supera 5 MB. Por favor sube una imagen más pequeña.");
-      return;
-    }
-    setFile(f);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !email || !password) {
-      toast.error("Completa todos los campos.");
+    const name = alias.trim();
+    if (!ALIAS_RE.test(name)) {
+      toast.error("El alias debe tener 2 a 24 caracteres (letras, números, espacios).");
       return;
     }
-    if (password.length < 8) {
-      toast.error("La contraseña debe tener al menos 8 caracteres.");
+    if (!PIN_RE.test(pin)) {
+      toast.error("El PIN debe ser de 4 dígitos.");
+      return;
+    }
+    if (pin !== pin2) {
+      toast.error("Los PIN no coinciden.");
       return;
     }
     if (!accepted) {
@@ -54,29 +42,20 @@ export function RegistrationForm() {
     }
     setSubmitting(true);
     try {
+      const email = aliasToEmail(name);
       const { data: signUp, error: signErr } = await supabase.auth.signUp({
         email,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { nombre } },
+        password: pinToPassword(pin),
+        options: { emailRedirectTo: `${window.location.origin}/dashboard`, data: { nombre: name } },
       });
       if (signErr) throw signErr;
       const user = signUp.user;
       if (!user) throw new Error("No se pudo crear la cuenta.");
 
-      let comprobante_url: string | null = null;
-      if (file) {
-        const ext = file.name.split(".").pop() || "bin";
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from("comprobantes").upload(path, file);
-        if (upErr) throw upErr;
-        comprobante_url = path;
-      }
-
       const { error: insErr } = await supabase.from("participants").insert({
         user_id: user.id,
-        nombre,
+        nombre: name,
         email,
-        comprobante_url,
       });
       if (insErr) throw insErr;
 
@@ -85,7 +64,11 @@ export function RegistrationForm() {
       toast.success("¡Registro recibido!");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error en el registro.";
-      toast.error(msg.includes("already registered") ? "Este email ya está registrado." : msg);
+      toast.error(
+        msg.includes("already registered") || msg.includes("already been registered")
+          ? "Ese alias ya está en uso. Elige otro."
+          : msg,
+      );
     } finally {
       setSubmitting(false);
     }
@@ -99,8 +82,8 @@ export function RegistrationForm() {
         </div>
         <h3 className="font-display text-2xl text-foreground">Registro recibido</h3>
         <p className="mt-3 text-sm text-muted-foreground">
-          Tu pago está pendiente de verificación. Recibirás acceso cuando el organizador confirme tu
-          pago.
+          Tu inscripción quedó pendiente de aprobación. El organizador te activará una vez confirmado
+          tu pago. Guarda tu alias y PIN para entrar.
         </p>
         <Button className="mt-6" onClick={() => router.navigate({ to: "/dashboard" })}>
           Ir a mi panel
@@ -112,54 +95,43 @@ export function RegistrationForm() {
   return (
     <Card className="mx-auto max-w-lg border-border bg-card p-6 card-shadow sm:p-8">
       <h3 className="font-display text-2xl tracking-wide text-foreground">Inscríbete</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Crea tu cuenta y sube tu comprobante de pago.</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Elige un alias y un PIN de 4 dígitos. Con eso entras a tus pronósticos.
+      </p>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="nombre">Nombre completo</Label>
-          <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="pass">Contraseña (mín. 8 caracteres)</Label>
-          <Input id="pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Comprobante de pago</Label>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              pickFile(e.dataTransfer.files?.[0] ?? null);
-            }}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-4 py-6 text-center transition-colors hover:border-primary/50"
-          >
-            {file ? (
-              <>
-                <FileCheck2 className="size-6 text-primary" />
-                <span className="text-sm text-foreground">{file.name}</span>
-                <span className="text-xs text-muted-foreground">Toca para cambiar</span>
-              </>
-            ) : (
-              <>
-                <UploadCloud className="size-6 text-muted-foreground" />
-                <span className="text-sm text-foreground">Arrastra o toca para subir</span>
-                <span className="text-xs text-muted-foreground">JPG, PNG o PDF · máx 5 MB</span>
-              </>
-            )}
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/jpeg,image/png,application/pdf"
-            className="hidden"
-            onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+          <Label htmlFor="alias">Nombre o alias</Label>
+          <Input
+            id="alias"
+            value={alias}
+            onChange={(e) => setAlias(e.target.value)}
+            placeholder="Tu alias"
+            maxLength={24}
           />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="pin">PIN (4 dígitos)</Label>
+            <Input
+              id="pin"
+              type="password"
+              inputMode="numeric"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="••••"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="pin2">Repite el PIN</Label>
+            <Input
+              id="pin2"
+              type="password"
+              inputMode="numeric"
+              value={pin2}
+              onChange={(e) => setPin2(e.target.value.replace(/\D/g, "").slice(0, 4))}
+              placeholder="••••"
+            />
+          </div>
         </div>
 
         <label className="flex items-start gap-3 text-sm text-muted-foreground">

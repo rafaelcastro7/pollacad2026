@@ -55,7 +55,6 @@ export type Database = {
       }
       participants: {
         Row: {
-          comprobante_url: string | null
           email: string | null
           estado_pago: string
           id: string
@@ -64,7 +63,6 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          comprobante_url?: string | null
           email?: string | null
           estado_pago?: string
           id?: string
@@ -73,7 +71,6 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          comprobante_url?: string | null
           email?: string | null
           estado_pago?: string
           id?: string

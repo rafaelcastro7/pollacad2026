@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Users, ClipboardList, Wallet, Eye } from "lucide-react";
+import { Loader2, Users, ClipboardList, Wallet } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,7 +127,7 @@ function Inscripciones() {
   const qc = useQueryClient();
   const { data: parts = [], isLoading } = useParticipants();
   const [filter, setFilter] = useState<"todos" | "pendiente" | "aprobado" | "rechazado">("todos");
-  const [proof, setProof] = useState<string | null>(null);
+  
   const [confirm, setConfirm] = useState<{ p: Participant; estado: "aprobado" | "rechazado" } | null>(null);
 
   const counts = {
@@ -138,18 +138,7 @@ function Inscripciones() {
 
   const filtered = parts.filter((p) => filter === "todos" || p.estado_pago === filter);
 
-  const viewProof = async (path: string | null) => {
-    if (!path) {
-      toast.error("Sin comprobante.");
-      return;
-    }
-    const { data, error } = await supabase.storage.from("comprobantes").createSignedUrl(path, 120);
-    if (error || !data) {
-      toast.error("No se pudo abrir el comprobante.");
-      return;
-    }
-    setProof(data.signedUrl);
-  };
+
 
   const apply = async () => {
     if (!confirm) return;
@@ -209,10 +198,8 @@ function Inscripciones() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="p-3">Nombre</th>
-                <th className="p-3">Email</th>
+                <th className="p-3">Alias</th>
                 <th className="p-3">Estado</th>
-                <th className="p-3">Comprobante</th>
                 <th className="p-3 text-right">Acciones</th>
               </tr>
             </thead>
@@ -220,16 +207,10 @@ function Inscripciones() {
               {filtered.map((p) => (
                 <tr key={p.id} className="border-b border-border/60">
                   <td className="p-3 font-medium">{p.nombre}</td>
-                  <td className="p-3 text-muted-foreground">{p.email ?? "—"}</td>
                   <td className="p-3">
                     <span className={`rounded-full border px-2 py-0.5 text-xs ${ESTADO_BADGE[p.estado_pago]}`}>
                       {ESTADO_EMOJI[p.estado_pago]} {p.estado_pago}
                     </span>
-                  </td>
-                  <td className="p-3">
-                    <Button variant="ghost" size="sm" onClick={() => viewProof(p.comprobante_url)}>
-                      <Eye className="size-4" /> Ver
-                    </Button>
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
@@ -255,7 +236,7 @@ function Inscripciones() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                  <td colSpan={3} className="p-6 text-center text-muted-foreground">
                     Sin inscripciones.
                   </td>
                 </tr>
@@ -265,20 +246,7 @@ function Inscripciones() {
         </Card>
       )}
 
-      {/* Proof modal */}
-      <Dialog open={!!proof} onOpenChange={(o) => !o && setProof(null)}>
-        <DialogContent className="max-h-[85vh] overflow-auto border-border bg-card">
-          <DialogHeader>
-            <DialogTitle>Comprobante de pago</DialogTitle>
-          </DialogHeader>
-          {proof &&
-            (proof.includes(".pdf") || proof.includes("application/pdf") ? (
-              <iframe src={proof} title="Comprobante" className="h-[70vh] w-full rounded-md" />
-            ) : (
-              <img src={proof} alt="Comprobante de pago" className="w-full rounded-md" />
-            ))}
-        </DialogContent>
-      </Dialog>
+
 
       {/* Confirm dialog */}
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
