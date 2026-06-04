@@ -236,7 +236,7 @@ function Inscripciones() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="p-6 text-center text-muted-foreground">
+                  <td colSpan={3} className="p-6 text-center text-muted-foreground">
                     Sin inscripciones.
                   </td>
                 </tr>
@@ -246,20 +246,7 @@ function Inscripciones() {
         </Card>
       )}
 
-      {/* Proof modal */}
-      <Dialog open={!!proof} onOpenChange={(o) => !o && setProof(null)}>
-        <DialogContent className="max-h-[85vh] overflow-auto border-border bg-card">
-          <DialogHeader>
-            <DialogTitle>Comprobante de pago</DialogTitle>
-          </DialogHeader>
-          {proof &&
-            (proof.includes(".pdf") || proof.includes("application/pdf") ? (
-              <iframe src={proof} title="Comprobante" className="h-[70vh] w-full rounded-md" />
-            ) : (
-              <img src={proof} alt="Comprobante de pago" className="w-full rounded-md" />
-            ))}
-        </DialogContent>
-      </Dialog>
+
 
       {/* Confirm dialog */}
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
