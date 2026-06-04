@@ -21,6 +21,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { flag } from "@/lib/flags";
 import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS } from "@/lib/prizes";
