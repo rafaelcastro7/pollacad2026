@@ -42,10 +42,40 @@ function Landing() {
   const sampleN = pot > 0 ? count : 50;
 
   const steps = [
-    { icon: Coins, title: "Regístrate y paga $20 CAD", desc: "Crea tu alias y PIN; el pago se coordina aparte." },
-    { icon: ListChecks, title: "Pronostica los 72 partidos", desc: "Marca el resultado de cada juego antes del kickoff." },
-    { icon: Trophy, title: "Gana hasta el 60% del pozo", desc: "Suma puntos y escala la tabla en vivo." },
+    {
+      icon: Coins,
+      title: "Regístrate y paga $20 CAD",
+      desc: "Crea tu alias y PIN; el pago se coordina aparte.",
+      accent: "primary" as const,
+    },
+    {
+      icon: ListChecks,
+      title: "Pronostica los 72 partidos",
+      desc: "Marca el resultado de cada juego antes del kickoff.",
+      accent: "gold" as const,
+    },
+    {
+      icon: Trophy,
+      title: "Gana hasta el 60% del pozo",
+      desc: "Suma puntos y escala la tabla en vivo.",
+      accent: "info" as const,
+    },
   ];
+
+  const accentMap = {
+    primary: {
+      box: "bg-primary/10 border-primary/20 text-primary",
+      hover: "hover:border-primary/50 hover:shadow-[0_24px_60px_-30px_rgba(76,202,114,0.55)]",
+    },
+    gold: {
+      box: "bg-gold/10 border-gold/20 text-gold",
+      hover: "hover:border-gold/50 hover:shadow-[0_24px_60px_-30px_rgba(240,192,64,0.55)]",
+    },
+    info: {
+      box: "bg-info/10 border-info/20 text-info",
+      hover: "hover:border-info/50 hover:shadow-[0_24px_60px_-30px_rgba(77,166,255,0.55)]",
+    },
+  };
 
   const prizes = [
     { medal: "🥇", pct: "60%", amt: sample * 0.6 },
@@ -66,25 +96,49 @@ function Landing() {
           className="absolute inset-0 size-full object-cover opacity-40"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        {/* Ambient color blobs */}
+        <div className="ambient-blob -top-24 left-1/2 size-[600px] -translate-x-1/2 bg-gold/15" />
+        <div className="ambient-blob bottom-[-15%] right-[-10%] size-[480px] bg-primary/10" />
+
         <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:py-28">
-          <h1 className="font-display text-5xl leading-none sm:text-7xl">
+          <h1 className="animate-fade-up font-display text-5xl leading-none sm:text-7xl">
             <span aria-hidden>⚽ </span>
-            <span className="gold-gradient-text">POLLA MUNDIAL FIFA 2026</span>
+            <span className="gold-gradient-text drop-shadow-[0_4px_14px_rgba(240,192,64,0.3)]">
+              POLLA MUNDIAL FIFA 2026
+            </span>
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground sm:text-xl">
-            72 partidos · Fase de grupos · <span className="text-gold font-semibold">$20 CAD</span>
+          <div
+            className="mt-5 flex animate-fade-up flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground sm:text-base"
+            style={{ animationDelay: "0.08s" }}
+          >
+            <span>72 partidos</span>
+            <span className="size-1 rounded-full bg-muted-foreground/50" />
+            <span>Fase de grupos</span>
+            <span className="size-1 rounded-full bg-muted-foreground/50" />
+            <span className="text-gold">$20 CAD</span>
+          </div>
+          <p
+            className="mt-10 animate-fade-up text-[11px] uppercase tracking-[0.4em] text-muted-foreground"
+            style={{ animationDelay: "0.16s" }}
+          >
+            La gloria comienza en
           </p>
-          <p className="mt-8 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Arranca en
-          </p>
-          <div className="mt-4">
+          <div className="mt-5 animate-fade-up" style={{ animationDelay: "0.2s" }}>
             <Countdown />
           </div>
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            <Button asChild variant="hero" size="lg">
+          <div
+            className="mt-12 flex animate-fade-up flex-wrap justify-center gap-4"
+            style={{ animationDelay: "0.28s" }}
+          >
+            <Button asChild variant="hero" size="lg" className="cta-pulse h-12 px-10 text-base uppercase tracking-wider">
               <a href="#inscripcion">Inscribirme</a>
             </Button>
-            <Button asChild variant="secondary" size="lg">
+            <Button
+              asChild
+              variant="secondary"
+              size="lg"
+              className="h-12 border border-border px-10 text-base uppercase tracking-wider backdrop-blur-md"
+            >
               <Link to="/leaderboard">Ver tabla</Link>
             </Button>
           </div>
@@ -95,17 +149,26 @@ function Landing() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <h2 className="text-center font-display text-3xl tracking-wide sm:text-4xl">Cómo funciona</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
-          {steps.map((s, i) => (
-            <Card key={i} className="border-border bg-card p-6 card-shadow">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <s.icon className="size-6" />
-              </div>
-              <h3 className="mt-4 font-display text-xl tracking-wide">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-            </Card>
-          ))}
+          {steps.map((s, i) => {
+            const a = accentMap[s.accent];
+            return (
+              <Card
+                key={i}
+                className={`group glass-card p-8 transition-all duration-300 hover:-translate-y-1.5 ${a.hover}`}
+              >
+                <div
+                  className={`flex size-12 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-110 ${a.box}`}
+                >
+                  <s.icon className="size-6" />
+                </div>
+                <h3 className="mt-5 font-display text-xl tracking-wide">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+              </Card>
+            );
+          })}
         </div>
       </section>
+
 
       {/* PRIZES */}
       <section className="mx-auto max-w-6xl px-4 py-8">
