@@ -14,16 +14,187 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      matches: {
+        Row: {
+          equipo_local: string
+          equipo_visitante: string
+          estadio: string
+          goles_local: number | null
+          goles_visitante: number | null
+          grupo: string
+          id: number
+          jornada: number
+          kickoff_time: string
+          numero_partido: number
+        }
+        Insert: {
+          equipo_local: string
+          equipo_visitante: string
+          estadio: string
+          goles_local?: number | null
+          goles_visitante?: number | null
+          grupo: string
+          id?: number
+          jornada: number
+          kickoff_time: string
+          numero_partido: number
+        }
+        Update: {
+          equipo_local?: string
+          equipo_visitante?: string
+          estadio?: string
+          goles_local?: number | null
+          goles_visitante?: number | null
+          grupo?: string
+          id?: number
+          jornada?: number
+          kickoff_time?: string
+          numero_partido?: number
+        }
+        Relationships: []
+      }
+      participants: {
+        Row: {
+          comprobante_url: string | null
+          estado_pago: string
+          id: string
+          inscripcion_at: string
+          nombre: string
+          telefono: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comprobante_url?: string | null
+          estado_pago?: string
+          id?: string
+          inscripcion_at?: string
+          nombre: string
+          telefono?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comprobante_url?: string | null
+          estado_pago?: string
+          id?: string
+          inscripcion_at?: string
+          nombre?: string
+          telefono?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      predictions: {
+        Row: {
+          goles_local_pred: number | null
+          goles_visitante_pred: number | null
+          id: string
+          match_id: number
+          participant_id: string
+          puntos_obtenidos: number
+          submitted_at: string
+        }
+        Insert: {
+          goles_local_pred?: number | null
+          goles_visitante_pred?: number | null
+          id?: string
+          match_id: number
+          participant_id: string
+          puntos_obtenidos?: number
+          submitted_at?: string
+        }
+        Update: {
+          goles_local_pred?: number | null
+          goles_visitante_pred?: number | null
+          id?: string
+          match_id?: number
+          participant_id?: string
+          puntos_obtenidos?: number
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "predictions_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboard"
+            referencedColumns: ["participant_id"]
+          },
+          {
+            foreignKeyName: "predictions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      leaderboard: {
+        Row: {
+          exactos: number | null
+          ganadores: number | null
+          nombre: string | null
+          participant_id: string | null
+          posicion: number | null
+          total_puntos: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_participant_predictions: {
+        Args: { _participant_id: string }
+        Returns: {
+          equipo_local: string
+          equipo_visitante: string
+          goles_local: number
+          goles_local_pred: number
+          goles_visitante: number
+          goles_visitante_pred: number
+          grupo: string
+          jornada: number
+          kickoff_time: string
+          match_id: number
+          numero_partido: number
+          puntos_obtenidos: number
+        }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +321,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const
