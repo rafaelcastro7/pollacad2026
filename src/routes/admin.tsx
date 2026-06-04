@@ -198,10 +198,8 @@ function Inscripciones() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="p-3">Nombre</th>
-                <th className="p-3">Email</th>
+                <th className="p-3">Alias</th>
                 <th className="p-3">Estado</th>
-                <th className="p-3">Comprobante</th>
                 <th className="p-3 text-right">Acciones</th>
               </tr>
             </thead>
