@@ -95,6 +95,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Polla Mundial FIFA 2026 ⚽" },
+      { name: "description", content: "A simple application for managing event participants and their payment status." },
+      { property: "og:description", content: "A simple application for managing event participants and their payment status." },
+      { name: "twitter:description", content: "A simple application for managing event participants and their payment status." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e502d88b-828b-465b-9844-de2f5ec4373a/id-preview-a8e26722--4ac79b16-27fc-4e44-9750-cb3605b93675.lovable.app-1780590874485.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/e502d88b-828b-465b-9844-de2f5ec4373a/id-preview-a8e26722--4ac79b16-27fc-4e44-9750-cb3605b93675.lovable.app-1780590874485.png" },
     ],
     links: [
       {
