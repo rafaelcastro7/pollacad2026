@@ -119,6 +119,15 @@ function PredictionsContent({ participantId }: { participantId: string }) {
         <Progress value={(predictedCount / TOTAL_MATCHES) * 100} className="mt-2 h-2" />
       </div>
 
+      {/* Important rule */}
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <Lock className="mt-0.5 size-4 shrink-0" />
+        <span>
+          <strong>Importante:</strong> ingresa el marcador y pulsa <strong>Guardar</strong>.
+          Una vez guardado, el pronóstico <strong>no se puede editar</strong>.
+        </span>
+      </div>
+
       {soon > 0 && (
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 p-3 text-sm text-gold">
           <AlertTriangle className="size-4 shrink-0" />
