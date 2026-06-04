@@ -210,7 +210,6 @@ function Inscripciones() {
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="p-3">Nombre</th>
-                <th className="p-3">Teléfono</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Estado</th>
                 <th className="p-3">Comprobante</th>
