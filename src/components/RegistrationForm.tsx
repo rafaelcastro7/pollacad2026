@@ -77,6 +77,7 @@ export function RegistrationForm() {
         user_id: user.id,
         nombre,
         telefono,
+        email,
         comprobante_url,
       });
       if (insErr) throw insErr;
