@@ -160,7 +160,7 @@ function Landing() {
           <p className="mt-2 text-sm text-muted-foreground">
             Paga <span className="font-semibold text-foreground">$20 CAD</span> por e-Transfer a{" "}
             <span className="font-semibold text-foreground">{ADMIN_EMAIL}</span> o en efectivo. Incluye
-            tu nombre y email en el mensaje.
+            tu alias en el mensaje. El organizador te activará al confirmar el pago.
           </p>
         </Card>
       </section>
