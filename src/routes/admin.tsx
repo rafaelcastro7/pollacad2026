@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Users, ClipboardList, Wallet, Eye } from "lucide-react";
+import { Loader2, Users, ClipboardList, Wallet } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
