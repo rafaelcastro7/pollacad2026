@@ -40,7 +40,7 @@ export function RegistrationForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !telefono || !email || !password) {
+    if (!nombre || !email || !password) {
       toast.error("Completa todos los campos.");
       return;
     }
