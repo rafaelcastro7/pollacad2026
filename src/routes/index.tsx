@@ -42,7 +42,7 @@ function Landing() {
   const sampleN = pot > 0 ? count : 50;
 
   const steps = [
-    { icon: Coins, title: "Regístrate y paga $20 CAD", desc: "Crea tu cuenta y sube tu comprobante." },
+    { icon: Coins, title: "Regístrate y paga $20 CAD", desc: "Crea tu alias y PIN; el pago se coordina aparte." },
     { icon: ListChecks, title: "Pronostica los 72 partidos", desc: "Marca el resultado de cada juego antes del kickoff." },
     { icon: Trophy, title: "Gana hasta el 60% del pozo", desc: "Suma puntos y escala la tabla en vivo." },
   ];
