@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { Loader2, AlertTriangle } from "lucide-react";
+import { Loader2, AlertTriangle, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches, useMyPredictions, type Match, type Prediction } from "@/hooks/useData";
 import { PredictionCard } from "@/components/PredictionCard";
