@@ -222,6 +222,9 @@ function Inscripciones() {
                   </td>
                   <td className="p-3">
                     <div className="flex justify-end gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => setDetail(p)}>
+                        <Eye className="size-4" />
+                      </Button>
                       <Button
                         variant="hero"
                         size="sm"
