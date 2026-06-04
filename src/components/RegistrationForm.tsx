@@ -18,7 +18,6 @@ export function RegistrationForm() {
   const { refresh } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = useState("");
-  const [telefono, setTelefono] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -41,7 +40,7 @@ export function RegistrationForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !telefono || !email || !password) {
+    if (!nombre || !email || !password) {
       toast.error("Completa todos los campos.");
       return;
     }
@@ -76,7 +75,6 @@ export function RegistrationForm() {
       const { error: insErr } = await supabase.from("participants").insert({
         user_id: user.id,
         nombre,
-        telefono,
         email,
         comprobante_url,
       });
@@ -119,10 +117,6 @@ export function RegistrationForm() {
         <div className="space-y-2">
           <Label htmlFor="nombre">Nombre completo</Label>
           <Input id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="tel">Teléfono / WhatsApp</Label>
-          <Input id="tel" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+1 ..." />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>

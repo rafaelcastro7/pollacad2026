@@ -210,7 +210,6 @@ function Inscripciones() {
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="p-3">Nombre</th>
-                <th className="p-3">Teléfono</th>
                 <th className="p-3">Email</th>
                 <th className="p-3">Estado</th>
                 <th className="p-3">Comprobante</th>
@@ -221,7 +220,6 @@ function Inscripciones() {
               {filtered.map((p) => (
                 <tr key={p.id} className="border-b border-border/60">
                   <td className="p-3 font-medium">{p.nombre}</td>
-                  <td className="p-3 text-muted-foreground">{p.telefono ?? "—"}</td>
                   <td className="p-3 text-muted-foreground">{p.email ?? "—"}</td>
                   <td className="p-3">
                     <span className={`rounded-full border px-2 py-0.5 text-xs ${ESTADO_BADGE[p.estado_pago]}`}>
