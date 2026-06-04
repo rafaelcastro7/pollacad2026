@@ -15,6 +15,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       <Link to="/leaderboard" className={linkCls} onClick={onNavigate}>
         Tabla
       </Link>
+      <Link to="/reglas" className={linkCls} onClick={onNavigate}>
+        Reglas
+      </Link>
       {user && (
         <Link to="/dashboard" className={linkCls} onClick={onNavigate}>
           Dashboard

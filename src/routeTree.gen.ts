@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ReglasRouteImport } from './routes/reglas'
 import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReglasRoute = ReglasRouteImport.update({
+  id: '/reglas',
+  path: '/reglas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PredictionsRoute = PredictionsRouteImport.update({
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/predictions': typeof PredictionsRoute
+  '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/predictions'
+    | '/reglas'
     | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/predictions'
+    | '/reglas'
     | '/sitemap.xml'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/predictions'
+    | '/reglas'
     | '/sitemap.xml'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +130,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   PredictionsRoute: typeof PredictionsRoute
+  ReglasRoute: typeof ReglasRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
@@ -128,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reglas': {
+      id: '/reglas'
+      path: '/reglas'
+      fullPath: '/reglas'
+      preLoaderRoute: typeof ReglasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/predictions': {
@@ -182,8 +202,19 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   PredictionsRoute: PredictionsRoute,
+  ReglasRoute: ReglasRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
