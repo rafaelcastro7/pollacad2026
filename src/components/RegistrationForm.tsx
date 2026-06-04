@@ -75,7 +75,6 @@ export function RegistrationForm() {
       const { error: insErr } = await supabase.from("participants").insert({
         user_id: user.id,
         nombre,
-        telefono,
         email,
         comprobante_url,
       });
