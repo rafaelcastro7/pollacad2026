@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { Loader2, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
