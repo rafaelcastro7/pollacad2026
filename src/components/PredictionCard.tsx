@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { useState } from "react";
+import { Check, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
 import { formatET, formatUTC, isLocked } from "@/lib/format";
 import { getMatchStatus, type MatchLike, type PredLike } from "@/lib/matchStatus";
 import type { Match, Prediction } from "@/hooks/useData";
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "error";
 
 function clampScore(v: string): number | null {
   if (v === "") return null;
@@ -30,48 +31,38 @@ export function PredictionCard({
   const [local, setLocal] = useState<string>(prediction?.goles_local_pred?.toString() ?? "");
   const [visit, setVisit] = useState<string>(prediction?.goles_visitante_pred?.toString() ?? "");
   const [save, setSave] = useState<SaveState>("idle");
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const firstRender = useRef(true);
 
   const locked = isLocked(match.kickoff_time);
   const hasResult = match.goles_local != null && match.goles_visitante != null;
+
+  // A prediction that already has scores is committed and can no longer be edited.
+  const committed = !!prediction && prediction.goles_local_pred != null && prediction.goles_visitante_pred != null;
+  const readOnly = locked || committed;
 
   const matchLike: MatchLike = match;
   const predLike: PredLike | null = prediction;
   const status = getMatchStatus(matchLike, predLike);
 
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    if (locked) return;
+  async function handleSave() {
     const l = clampScore(local);
     const v = clampScore(visit);
     if (l == null || v == null) return;
+    setSave("saving");
+    const { error } = await supabase
+      .from("predictions")
+      .upsert(
+        { participant_id: participantId, match_id: match.id, goles_local_pred: l, goles_visitante_pred: v },
+        { onConflict: "participant_id,match_id" },
+      );
+    if (error) {
+      setSave("error");
+    } else {
+      setSave("idle");
+      onSaved();
+    }
+  }
 
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(async () => {
-      setSave("saving");
-      const { error } = await supabase
-        .from("predictions")
-        .upsert(
-          { participant_id: participantId, match_id: match.id, goles_local_pred: l, goles_visitante_pred: v },
-          { onConflict: "participant_id,match_id" },
-        );
-      if (error) {
-        setSave("error");
-      } else {
-        setSave("saved");
-        onSaved();
-        setTimeout(() => setSave("idle"), 2000);
-      }
-    }, 800);
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [local, visit]);
+  const canSave = !readOnly && clampScore(local) != null && clampScore(visit) != null && save !== "saving";
 
   return (
     <Card className="relative border-border bg-card p-4 card-shadow">
@@ -97,7 +88,7 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
-            disabled={locked}
+            disabled={readOnly}
             value={local}
             onChange={(e) => setLocal(e.target.value)}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
@@ -109,7 +100,7 @@ export function PredictionCard({
             min={0}
             max={20}
             inputMode="numeric"
-            disabled={locked}
+            disabled={readOnly}
             value={visit}
             onChange={(e) => setVisit(e.target.value)}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
@@ -138,15 +129,31 @@ export function PredictionCard({
         </span>
       </div>
 
-      {!locked && (
-        <div className="mt-2 h-4 text-right text-xs">
-          {save === "saving" && <span className="text-muted-foreground">Guardando…</span>}
-          {save === "saved" && (
-            <span className="inline-flex items-center gap-1 text-primary">
-              <Check className="size-3" /> Guardado
-            </span>
+      {/* Action area */}
+      {readOnly ? (
+        <div className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-muted/50 py-2 text-xs text-muted-foreground">
+          <Lock className="size-3" />
+          {committed && !locked
+            ? "Pronóstico guardado · no editable"
+            : "Bloqueado · el partido ya inició"}
+        </div>
+      ) : (
+        <div className="mt-3 space-y-2">
+          <Button size="sm" className="w-full" disabled={!canSave} onClick={handleSave}>
+            {save === "saving" ? (
+              "Guardando…"
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                <Check className="size-4" /> Guardar
+              </span>
+            )}
+          </Button>
+          <p className="text-center text-[11px] text-muted-foreground">
+            ⚠️ Una vez guardado, el pronóstico no se puede editar.
+          </p>
+          {save === "error" && (
+            <p className="text-center text-xs text-destructive">Error al guardar. Intenta de nuevo.</p>
           )}
-          {save === "error" && <span className="text-destructive">Error al guardar</span>}
         </div>
       )}
     </Card>
