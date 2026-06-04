@@ -44,7 +44,7 @@ function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword(creds);
       if (error) throw error;
       toast.success("¡Bienvenido!");
-      router.navigate({ to: "/dashboard" });
+      router.navigate({ to: orgMode ? "/admin" : "/dashboard" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Error al iniciar sesión.";
       toast.error(

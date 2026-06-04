@@ -22,7 +22,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 function Dashboard() {
   const router = useRouter();
-  const { user, participant, loading, signOut } = useAuth();
+  const { user, participant, isAdmin, loading, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -45,7 +45,26 @@ function Dashboard() {
     );
   }
 
+  // Organizer (admin) without a participant entry: send them to the admin panel.
+  if (isAdmin && !participant) {
+    return (
+      <Centered>
+        <Card className="w-full border-gold/40 bg-gold/5 p-8 text-center card-shadow">
+          <div className="text-4xl">🛠️</div>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">Acceso de organizador</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Entraste como organizador. Desde el panel puedes autorizar pagos y cargar resultados.
+          </p>
+          <Button variant="hero" className="mt-6" onClick={() => router.navigate({ to: "/admin" })}>
+            Ir al panel de administración
+          </Button>
+        </Card>
+      </Centered>
+    );
+  }
+
   const estado = participant?.estado_pago ?? "pendiente";
+
 
   if (estado === "pendiente") {
     return (
