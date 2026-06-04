@@ -127,7 +127,7 @@ function Inscripciones() {
   const qc = useQueryClient();
   const { data: parts = [], isLoading } = useParticipants();
   const [filter, setFilter] = useState<"todos" | "pendiente" | "aprobado" | "rechazado">("todos");
-  const [proof, setProof] = useState<string | null>(null);
+  
   const [confirm, setConfirm] = useState<{ p: Participant; estado: "aprobado" | "rechazado" } | null>(null);
 
   const counts = {
