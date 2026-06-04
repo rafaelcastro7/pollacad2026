@@ -172,7 +172,7 @@ function Landing() {
 
       {/* PRIZES */}
       <section className="mx-auto max-w-6xl px-4 py-8">
-        <Card className="border-gold/30 bg-card p-6 card-shadow sm:p-8">
+        <Card className="glass-card border-gold/30 p-6 card-shadow sm:p-8">
           <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
             <h2 className="font-display text-3xl tracking-wide">Premios</h2>
             <p className="text-sm text-muted-foreground">
@@ -181,7 +181,10 @@ function Landing() {
           </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-4">
             {prizes.map((p) => (
-              <div key={p.medal} className="rounded-xl border border-border bg-muted/40 p-5 text-center">
+              <div
+                key={p.medal}
+                className="rounded-xl border border-border bg-muted/40 p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:bg-muted/60"
+              >
                 <div className="text-3xl">{p.medal}</div>
                 <div className="mt-2 font-display text-4xl text-gold">{p.pct}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{formatCAD(p.amt)}</div>
@@ -195,23 +198,24 @@ function Landing() {
       <section className="mx-auto max-w-6xl px-4 py-8">
         <h2 className="text-center font-display text-3xl tracking-wide sm:text-4xl">Sistema de puntos</h2>
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <Card className="border-primary/30 bg-card p-6 text-center card-shadow">
+          <Card className="glass-card border-primary/30 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-primary/50">
             <div className="font-display text-5xl text-primary">3</div>
             <p className="mt-2 text-sm text-muted-foreground">puntos · Marcador exacto</p>
             <p className="mt-1 text-xs text-muted-foreground">(2-1 y salió 2-1)</p>
           </Card>
-          <Card className="border-success/30 bg-card p-6 text-center card-shadow">
+          <Card className="glass-card border-success/30 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-success/50">
             <div className="font-display text-5xl text-success">1</div>
             <p className="mt-2 text-sm text-muted-foreground">punto · Resultado correcto</p>
             <p className="mt-1 text-xs text-muted-foreground">(ganó el mismo equipo)</p>
           </Card>
-          <Card className="border-border bg-card p-6 text-center card-shadow">
+          <Card className="glass-card border-border p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-muted-foreground/40">
             <div className="font-display text-5xl text-muted-foreground">0</div>
             <p className="mt-2 text-sm text-muted-foreground">puntos · Fallo</p>
             <p className="mt-1 text-xs text-muted-foreground">(resultado incorrecto)</p>
           </Card>
         </div>
       </section>
+
 
       {/* REGISTRATION */}
       <section id="inscripcion" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16">
