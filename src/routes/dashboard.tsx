@@ -9,7 +9,7 @@ import { flag } from "@/lib/flags";
 import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
 import { getMatchStatus } from "@/lib/matchStatus";
-import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
+import { ENTRY_FEE, TOTAL_MATCHES, ADMIN_EMAIL } from "@/lib/constants";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Mi panel — Polla Mundial 2026" }] }),
@@ -90,7 +90,7 @@ function Dashboard() {
           <div className="text-4xl">❌</div>
           <h1 className="mt-3 font-display text-2xl tracking-wide">Pago rechazado</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Tu pago fue rechazado. Contacta a dgc75@hotmail.com
+            Tu pago fue rechazado. Contacta a {ADMIN_EMAIL}
           </p>
           <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => router.navigate({ to: "/" }))}>
             Cerrar sesión
