@@ -364,6 +364,15 @@ function ConcursoDetailPage() {
                     const hasPred = pred?.goles_local_pred != null && pred?.goles_visitante_pred != null;
                     const status = getMatchStatus(m, pred);
                     const interactive = canPredict && defined && !locked;
+                    // Rows are tappable whenever tapping leads to a guided next
+                    // step (enroll, sign in, info) — not just when predicting.
+                    const clickable =
+                      !user ||
+                      (!!participant &&
+                        (!myInscripcion ||
+                          myInscripcion.estado_pago !== "aprobado" ||
+                          !defined ||
+                          !locked));
 
                     const inner = (
                       <>
