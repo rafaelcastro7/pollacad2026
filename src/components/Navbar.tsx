@@ -12,6 +12,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary";
   return (
     <>
+      <Link to="/concursos" className={linkCls} onClick={onNavigate}>
+        Concursos
+      </Link>
       <Link to="/leaderboard" className={linkCls} onClick={onNavigate}>
         Tabla
       </Link>
