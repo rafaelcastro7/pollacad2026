@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Trophy, ListChecks, Coins } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import heroImg from "@/assets/hero-stadium.jpg";
 import { Countdown } from "@/components/Countdown";
-import { RegistrationForm } from "@/components/RegistrationForm";
-import { Card } from "@/components/ui/card";
+import { ModalidadCard } from "@/components/ModalidadCard";
+import { ScoringExample } from "@/components/ScoringExample";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { ENTRY_FEE, ADMIN_EMAIL } from "@/lib/constants";
-import { formatCAD } from "@/lib/format";
+import { ADMIN_EMAIL } from "@/lib/constants";
+import { MODALIDAD_ORDER } from "@/lib/concursos";
 import { useT, tStatic } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
@@ -21,66 +19,8 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-function useApprovedCount() {
-  return useQuery({
-    queryKey: ["approved-count"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_leaderboard");
-      if (error) throw error;
-      return data?.length ?? 0;
-    },
-  });
-}
-
 function Landing() {
   const t = useT();
-  const { data: count = 0 } = useApprovedCount();
-  const pot = Math.max(count, 0) * ENTRY_FEE;
-  const sample = pot > 0 ? pot : 50 * ENTRY_FEE;
-  const sampleN = pot > 0 ? count : 50;
-
-  const steps = [
-    {
-      icon: Coins,
-      title: t("home.step1.title"),
-      desc: t("home.step1.desc"),
-      accent: "primary" as const,
-    },
-    {
-      icon: ListChecks,
-      title: t("home.step2.title"),
-      desc: t("home.step2.desc"),
-      accent: "gold" as const,
-    },
-    {
-      icon: Trophy,
-      title: t("home.step3.title"),
-      desc: t("home.step3.desc"),
-      accent: "info" as const,
-    },
-  ];
-
-  const accentMap = {
-    primary: {
-      box: "bg-primary/10 border-primary/20 text-primary",
-      hover: "hover:border-primary/50 hover:shadow-[0_24px_60px_-30px_rgba(76,202,114,0.55)]",
-    },
-    gold: {
-      box: "bg-gold/10 border-gold/20 text-gold",
-      hover: "hover:border-gold/50 hover:shadow-[0_24px_60px_-30px_rgba(240,192,64,0.55)]",
-    },
-    info: {
-      box: "bg-info/10 border-info/20 text-info",
-      hover: "hover:border-info/50 hover:shadow-[0_24px_60px_-30px_rgba(77,166,255,0.55)]",
-    },
-  };
-
-  const prizes = [
-    { medal: "🥇", pct: "60%", amt: sample * 0.6 },
-    { medal: "🥈", pct: "25%", amt: sample * 0.25 },
-    { medal: "🥉", pct: "10%", amt: sample * 0.1 },
-    { medal: "4️⃣", pct: "5%", amt: sample * 0.05 },
-  ];
 
   return (
     <main>
@@ -94,7 +34,6 @@ function Landing() {
           className="absolute inset-0 size-full object-cover opacity-40"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
-        {/* Ambient color blobs */}
         <div className="ambient-blob -top-24 left-1/2 size-[600px] -translate-x-1/2 bg-gold/15" />
         <div className="ambient-blob bottom-[-15%] right-[-10%] size-[480px] bg-primary/10" />
 
@@ -105,16 +44,12 @@ function Landing() {
               POLLA MUNDIAL FIFA 2026
             </span>
           </h1>
-          <div
-            className="mt-5 flex animate-fade-up flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-widest text-muted-foreground sm:text-base"
+          <p
+            className="mx-auto mt-5 max-w-2xl animate-fade-up text-lg text-muted-foreground sm:text-xl"
             style={{ animationDelay: "0.08s" }}
           >
-            <span>{t("home.hero.matches")}</span>
-            <span className="size-1 rounded-full bg-muted-foreground/50" />
-            <span>{t("home.hero.groupStage")}</span>
-            <span className="size-1 rounded-full bg-muted-foreground/50" />
-            <span className="text-gold">$20 CAD</span>
-          </div>
+            {t("home.hero.promise")}
+          </p>
           <p
             className="mt-10 animate-fade-up text-[11px] uppercase tracking-[0.4em] text-muted-foreground"
             style={{ animationDelay: "0.16s" }}
@@ -129,7 +64,9 @@ function Landing() {
             style={{ animationDelay: "0.28s" }}
           >
             <Button asChild variant="hero" size="lg" className="cta-pulse h-12 px-10 text-base uppercase tracking-wider">
-              <a href="#inscripcion">{t("home.hero.cta")}</a>
+              <Link to="/jugar">
+                {t("home.hero.startPlaying")} <ArrowRight className="size-4" />
+              </Link>
             </Button>
             <Button
               asChild
@@ -137,93 +74,33 @@ function Landing() {
               size="lg"
               className="h-12 border border-border px-10 text-base uppercase tracking-wider backdrop-blur-md"
             >
-              <Link to="/concursos">{t("home.hero.viewContests")}</Link>
+              <Link to="/concursos">{t("home.hero.viewAll")}</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* MODES */}
       <section className="mx-auto max-w-6xl px-4 py-16">
-        <h2 className="text-center font-display text-3xl tracking-wide sm:text-4xl">{t("home.how.title")}</h2>
-        <div className="mt-10 grid gap-5 sm:grid-cols-3">
-          {steps.map((s, i) => {
-            const a = accentMap[s.accent];
-            return (
-              <Card
-                key={i}
-                className={`group glass-card p-8 transition-all duration-300 hover:-translate-y-1.5 ${a.hover}`}
-              >
-                <div
-                  className={`flex size-12 items-center justify-center rounded-xl border transition-transform duration-300 group-hover:scale-110 ${a.box}`}
-                >
-                  <s.icon className="size-6" />
-                </div>
-                <h3 className="mt-5 font-display text-xl tracking-wide">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
-              </Card>
-            );
-          })}
+        <div className="text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
+            <Sparkles className="size-3.5" /> {t("home.modes.eyebrow")}
+          </span>
+          <h2 className="mt-3 font-display text-3xl tracking-wide sm:text-4xl">{t("home.modes.title")}</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-muted-foreground">{t("home.modes.subtitle")}</p>
         </div>
-      </section>
-
-
-      {/* PRIZES */}
-      <section className="mx-auto max-w-6xl px-4 py-8">
-        <Card className="glass-card border-gold/30 p-6 card-shadow sm:p-8">
-          <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
-            <h2 className="font-display text-3xl tracking-wide">{t("home.prizes.title")}</h2>
-            <p className="text-sm text-muted-foreground">
-              {t("home.prizes.summary", { n: sampleN, pot: formatCAD(sample) })}
-            </p>
-          </div>
-          <div className="mt-6 grid gap-4 sm:grid-cols-4">
-            {prizes.map((p) => (
-              <div
-                key={p.medal}
-                className="rounded-xl border border-border bg-muted/40 p-5 text-center transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:bg-muted/60"
-              >
-                <div className="text-3xl">{p.medal}</div>
-                <div className="mt-2 font-display text-4xl text-gold">{p.pct}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{formatCAD(p.amt)}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {MODALIDAD_ORDER.map((m, i) => (
+            <ModalidadCard key={m} modalidad={m} index={i} ctaKey="common.see" />
+          ))}
+        </div>
       </section>
 
       {/* SCORING */}
-      <section className="mx-auto max-w-6xl px-4 py-8">
+      <section className="mx-auto max-w-4xl px-4 pb-16">
         <h2 className="text-center font-display text-3xl tracking-wide sm:text-4xl">{t("home.scoring.title")}</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <Card className="glass-card border-primary/30 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-primary/50">
-            <div className="font-display text-5xl text-primary">3</div>
-            <p className="mt-2 text-sm text-muted-foreground">{t("home.scoring.exact")}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{t("home.scoring.exactEx")}</p>
-          </Card>
-          <Card className="glass-card border-success/30 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-success/50">
-            <div className="font-display text-5xl text-success">1</div>
-            <p className="mt-2 text-sm text-muted-foreground">{t("home.scoring.result")}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{t("home.scoring.resultEx")}</p>
-          </Card>
-          <Card className="glass-card border-border p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-muted-foreground/40">
-            <div className="font-display text-5xl text-muted-foreground">0</div>
-            <p className="mt-2 text-sm text-muted-foreground">{t("home.scoring.miss")}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{t("home.scoring.missEx")}</p>
-          </Card>
-        </div>
-      </section>
-
-
-      {/* REGISTRATION */}
-      <section id="inscripcion" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16">
-        <RegistrationForm />
-
-        {/* PAYMENT INSTRUCTIONS */}
-        <Card className="mx-auto mt-8 max-w-lg border-info/30 bg-info/5 p-6">
-          <h3 className="font-display text-xl tracking-wide text-info">{t("home.pay.title")}</h3>
-          <p className="mt-2 text-sm text-muted-foreground">{t("home.pay.body", { email: ADMIN_EMAIL })}</p>
-        </Card>
+        <p className="mt-2 text-center text-sm text-muted-foreground">{t("home.scoringNote")}</p>
+        <ScoringExample className="mt-8" />
       </section>
 
       <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
