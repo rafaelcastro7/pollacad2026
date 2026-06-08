@@ -685,6 +685,13 @@ export const translations: Record<Lang, Dict> = {
     "detail.lb.title": "Contest standings",
     "detail.lb.empty": "No enrolled and approved players in this contest yet.",
     "detail.matches.title": "Contest matches",
+    "detail.matches.empty": "No matches have been loaded for this contest yet.",
+    "detail.matches.tapToPredict": "Tap a match to enter your prediction.",
+    "detail.matches.loginHint": "Sign in and enroll to predict these matches.",
+    "detail.matches.joinHint": "Enroll in the contest to start predicting.",
+    "detail.matches.pendingHint": "Your payment is pending. Once the organizer approves it, you can predict.",
+    "detail.matches.tbaHint": "Predictions unlock once the teams are confirmed.",
+    "detail.matches.yourPick": "Your pick: {l}–{v}",
 
     "login.meta.title": "Sign in — World Cup Pool 2026",
     "login.meta.desc": "Access your FIFA World Cup 2026 Pool dashboard.",
