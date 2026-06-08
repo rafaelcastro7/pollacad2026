@@ -405,7 +405,7 @@ function ConcursoDetailPage() {
                             >
                               {status.emoji} {t(status.labelKey)}
                             </span>
-                            {interactive && <ChevronRight className="size-4 text-primary" />}
+                            {clickable && <ChevronRight className="size-4 text-primary" />}
                           </span>
                         </div>
                       </>
