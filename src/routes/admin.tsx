@@ -32,6 +32,8 @@ import { flag } from "@/lib/flags";
 import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS } from "@/lib/prizes";
 import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
+import { useConcursosOverview } from "@/hooks/useConcursos";
+import { MODALIDAD_LABEL, ESTADO_META, PAGO_META, type EstadoConcurso, type Modalidad } from "@/lib/concursos";
 
 type Participant = Tables<"participants">;
 
