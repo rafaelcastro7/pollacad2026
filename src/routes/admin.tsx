@@ -71,6 +71,7 @@ function AdminPage() {
   }
 
   const nav: { key: Section; label: string; icon: typeof Users }[] = [
+    { key: "concursos", label: "Concursos", icon: Trophy },
     { key: "inscripciones", label: "Inscripciones", icon: Users },
     { key: "resultados", label: "Resultados", icon: ClipboardList },
     { key: "resumen", label: "Resumen", icon: Wallet },
@@ -98,6 +99,7 @@ function AdminPage() {
           </div>
         </aside>
         <div className="min-w-0 flex-1">
+          {section === "concursos" && <ConcursosAdmin />}
           {section === "inscripciones" && <Inscripciones />}
           {section === "resultados" && <Resultados />}
           {section === "resumen" && <Resumen onGoToInscripciones={() => setSection("inscripciones")} />}
