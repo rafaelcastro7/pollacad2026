@@ -779,6 +779,7 @@ function ManageInscripcionesDialog({
   onClose: () => void;
   onChanged: () => void;
 }) {
+  const t = useT();
   const qc = useQueryClient();
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-inscripciones", concurso?.id],
