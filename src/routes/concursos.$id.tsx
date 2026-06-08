@@ -140,6 +140,54 @@ function ConcursoDetailPage() {
     qc.invalidateQueries({ queryKey: ["concursos-overview"] });
   };
 
+  const join = async () => {
+    await joinContest();
+  };
+
+  const joinContest = async () => {
+    if (!participant) return;
+    setJoining(true);
+    const { error } = await supabase.from("inscripciones").insert({
+      concurso_id: id,
+      participant_id: participant.id,
+      estado_pago: "pendiente",
+    });
+    setJoining(false);
+    if (error) {
+      toast.error(t("detail.join.error"));
+      return;
+    }
+    setPrompt(null);
+    toast.success(t("detail.join.success"));
+    qc.invalidateQueries({ queryKey: ["my-inscripciones", participant.id] });
+    qc.invalidateQueries({ queryKey: ["concursos-overview"] });
+  };
+
+  // Decide what happens when a player taps a match row — always friendly & guided.
+  const handleMatchClick = (m: (typeof matches)[number]) => {
+    const label = `${m.equipo_local} vs ${m.equipo_visitante}`;
+    const defined = m.equipo_local !== "Por definir";
+    if (!user) {
+      setPrompt({ mode: "login", match: label });
+      return;
+    }
+    if (!participant) return; // organizer accounts don't play
+    if (!myInscripcion) {
+      setPrompt({ mode: "join", match: label });
+      return;
+    }
+    if (myInscripcion.estado_pago !== "aprobado") {
+      setPrompt({ mode: "pending", match: label });
+      return;
+    }
+    if (!defined) {
+      setPrompt({ mode: "tba", match: label });
+      return;
+    }
+    if (isLocked(m.kickoff_time)) return; // predictions already closed
+    router.navigate({ to: "/predictions", search: { concurso: id } });
+  };
+
   // Group matches by ET date for display
   const grouped: { label: string; matches: typeof matches }[] = [];
   for (const m of matches) {
