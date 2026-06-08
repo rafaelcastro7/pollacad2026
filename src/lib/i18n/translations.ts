@@ -152,6 +152,17 @@ export const translations: Record<Lang, Dict> = {
     "detail.matches.pendingHint": "Tu pago está pendiente. Cuando el organizador lo apruebe, podrás pronosticar.",
     "detail.matches.tbaHint": "Los pronósticos se habilitarán cuando se definan los equipos.",
     "detail.matches.yourPick": "Tu pronóstico: {l}–{v}",
+    "detail.joinPrompt.title": "¿Quieres jugar este concurso?",
+    "detail.joinPrompt.desc": "Para pronosticar «{match}» primero debes inscribirte. La cuota es {fee} y el organizador confirmará tu pago.",
+    "detail.joinPrompt.confirm": "Sí, inscribirme · {fee}",
+    "detail.joinPrompt.cancel": "Ahora no",
+    "detail.joinPrompt.loginTitle": "Inicia sesión para jugar",
+    "detail.joinPrompt.loginDesc": "Crea tu cuenta o inicia sesión para inscribirte en «{match}» y empezar a pronosticar.",
+    "detail.joinPrompt.login": "Iniciar sesión",
+    "detail.joinPrompt.pendingTitle": "Tu pago está en revisión",
+    "detail.joinPrompt.pendingDesc": "Ya estás inscrito en este concurso. En cuanto el organizador apruebe tu pago de {fee}, podrás pronosticar «{match}».",
+    "detail.joinPrompt.ok": "Entendido",
+    "detail.joinPrompt.tba": "Los equipos de este partido aún no están definidos. Vuelve pronto.",
 
     // ---------- Login ----------
     "login.meta.title": "Iniciar sesión — Polla Mundial 2026",
