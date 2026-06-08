@@ -1,8 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Scroll, Shield, Trophy, Clock, Coins, AlertTriangle, Users, CheckCircle } from "lucide-react";
-import { ENTRY_FEE, ADMIN_EMAIL } from "@/lib/constants";
+import {
+  Scroll,
+  Shield,
+  Trophy,
+  Clock,
+  AlertTriangle,
+  Users,
+  CheckCircle,
+  Layers,
+} from "lucide-react";
+import { ADMIN_EMAIL } from "@/lib/constants";
+import { MODALIDAD_LABEL, MODALIDAD_DESC, MODALIDAD_ICON, type Modalidad } from "@/lib/concursos";
 
 export const Route = createFileRoute("/reglas")({
   head: () => ({
@@ -10,12 +20,15 @@ export const Route = createFileRoute("/reglas")({
       { title: "Reglas del Juego — Polla Mundial FIFA 2026" },
       {
         name: "description",
-        content: "Reglas completas de la Polla Mundial FIFA 2026: inscripción, puntos, premios, desempates y más.",
+        content:
+          "Reglas de la Polla Mundial FIFA 2026: modalidades de concurso, inscripción, sistema de puntos, premios y desempates.",
       },
     ],
   }),
   component: ReglasPage,
 });
+
+const MODALIDADES: Modalidad[] = ["partido", "dia", "fase", "mundial"];
 
 function ReglasPage() {
   return (
@@ -31,6 +44,45 @@ function ReglasPage() {
       </div>
 
       <div className="mt-10 space-y-8">
+        {/* MODALIDADES */}
+        <Card className="border-border bg-card card-shadow">
+          <CardHeader className="flex flex-row items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
+              <Layers className="size-5" />
+            </div>
+            <CardTitle className="font-display text-xl tracking-wide">Modalidades de Concurso</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <p>
+              No hay una sola polla: hay <span className="font-semibold text-foreground">varios concursos</span> y
+              eliges en cuáles compites. Pronosticas el marcador de cada partido una sola vez y ese marcador
+              cuenta en todos los concursos a los que estés inscrito que incluyan ese partido.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {MODALIDADES.map((m) => {
+                const Icon = MODALIDAD_ICON[m];
+                return (
+                  <div key={m} className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4">
+                    <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
+                    <div>
+                      <p className="font-semibold text-foreground">{MODALIDAD_LABEL[m]}</p>
+                      <p className="text-xs">{MODALIDAD_DESC[m]}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-xs">
+              Cada concurso tiene su <span className="font-semibold text-foreground">propia cuota, su propio pozo,
+              su propia tabla y su propia fecha de cierre</span>. Las eliminatorias se abren cuando se conocen los
+              equipos clasificados.
+            </p>
+            <Button asChild variant="secondary" size="sm">
+              <Link to="/concursos">Ver concursos disponibles</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* INSCRIPCIÓN */}
         <Card className="border-border bg-card card-shadow">
           <CardHeader className="flex flex-row items-center gap-3">
@@ -42,22 +94,28 @@ function ReglasPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                Cuota de inscripción: <span className="font-semibold text-foreground">${ENTRY_FEE} CAD</span> por participante.
+                Regístrate con un <span className="font-semibold text-foreground">alias único</span> y un{" "}
+                <span className="font-semibold text-foreground">PIN de 4 dígitos</span>.
               </li>
               <li>
-                Regístrate con un <span className="font-semibold text-foreground">alias único</span> y un <span className="font-semibold text-foreground">PIN de 4 dígitos</span>.
+                Inscríbete a los concursos que quieras desde la página de{" "}
+                <Link to="/concursos" className="font-semibold text-primary underline-offset-2 hover:underline">
+                  Concursos
+                </Link>
+                . La cuota se muestra en cada concurso (puede variar según la modalidad).
               </li>
               <li>
-                Realiza el pago por e-Transfer a <span className="font-semibold text-foreground">{ADMIN_EMAIL}</span> o en efectivo al organizador.
+                Paga la cuota de cada concurso por e-Transfer a{" "}
+                <span className="font-semibold text-foreground">{ADMIN_EMAIL}</span> o en efectivo al organizador.
+                Incluye tu alias en el mensaje para identificar tu pago.
               </li>
               <li>
-                Incluye tu alias en el mensaje del e-Transfer para identificar tu pago.
+                El organizador marca tu pago como <span className="font-semibold text-success">aprobado</span>. Solo
+                entonces apareces en la tabla de ese concurso y optas a su premio.
               </li>
               <li>
-                El organizador activará tu cuenta una vez confirmado el pago. Hasta entonces no podrás ingresar pronósticos.
-              </li>
-              <li>
-                Fecha límite de inscripción: <span className="font-semibold text-foreground">11 de junio de 2026</span> (inicio del Mundial).
+                Cada concurso cierra su inscripción al iniciar el primer partido de su alcance (su fecha de cierre
+                se indica en el concurso).
               </li>
             </ul>
           </CardContent>
@@ -74,19 +132,28 @@ function ReglasPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                Debes pronosticar el resultado exacto de los <span className="font-semibold text-foreground">72 partidos de la fase de grupos</span>.
+                Pronosticas el <span className="font-semibold text-foreground">marcador exacto</span> de cada partido
+                ingresando el número de goles de cada equipo.
               </li>
               <li>
-                Los pronósticos se ingresan marcando el número de goles de cada equipo.
+                El marcador se captura <span className="font-semibold text-foreground">una sola vez por partido</span>{" "}
+                y vale para todos los concursos que incluyan ese partido.
               </li>
               <li>
-                Puedes modificar tus pronósticos <span className="font-semibold text-foreground">hasta 1 hora antes</span> del inicio de cada partido.
+                <span className="font-semibold text-destructive">Una vez que guardas un marcador, no se puede
+                editar.</span> Revísalo bien antes de pulsar Guardar.
               </li>
               <li>
-                Una vez iniciado un partido, sus pronósticos se bloquean y no podrán modificarse.
+                Si no lo guardaste antes, el pronóstico se <span className="font-semibold text-foreground">bloquea
+                automáticamente al iniciar el partido</span> (kickoff) y ya no podrás ingresarlo.
               </li>
               <li>
-                Solo los participantes con pago <span className="font-semibold text-success">aprobado</span> pueden ingresar y guardar pronósticos.
+                Solo los participantes con pago <span className="font-semibold text-success">aprobado</span> pueden
+                guardar pronósticos.
+              </li>
+              <li>
+                Los partidos de eliminatorias con equipos "Por definir" se podrán pronosticar cuando se conozcan los
+                clasificados.
               </li>
             </ul>
           </CardContent>
@@ -101,6 +168,7 @@ function ReglasPage() {
             <CardTitle className="font-display text-xl tracking-wide">Sistema de Puntos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
+            <p>El mismo sistema de puntos aplica en todos los concursos:</p>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
                 <div className="font-display text-4xl text-primary">3</div>
@@ -119,7 +187,10 @@ function ReglasPage() {
               </div>
             </div>
             <p>
-              Ejemplo: Si pronosticaste Brasil 2-1 Croacia y el resultado fue Brasil 2-1 Croacia, obtienes <span className="font-semibold text-primary">3 puntos</span>. Si el resultado fue Brasil 1-0 Croacia, obtienes <span className="font-semibold text-success">1 punto</span>. Si ganó Croacia o empató, obtienes <span className="font-semibold text-muted-foreground">0 puntos</span>.
+              Ejemplo: Si pronosticaste Brasil 2-1 Croacia y el resultado fue Brasil 2-1 Croacia, obtienes{" "}
+              <span className="font-semibold text-primary">3 puntos</span>. Si el resultado fue Brasil 1-0 Croacia,
+              obtienes <span className="font-semibold text-success">1 punto</span>. Si ganó Croacia o empató, obtienes{" "}
+              <span className="font-semibold text-muted-foreground">0 puntos</span>.
             </p>
           </CardContent>
         </Card>
@@ -134,7 +205,9 @@ function ReglasPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              El pozo total se calcula multiplicando <span className="font-semibold text-foreground">${ENTRY_FEE} CAD × número de participantes aprobados</span>.
+              El pozo de cada concurso se calcula como{" "}
+              <span className="font-semibold text-foreground">cuota del concurso × número de participantes
+              aprobados</span> en ese concurso, y se reparte así:
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
@@ -187,16 +260,15 @@ function ReglasPage() {
                 <span className="font-semibold text-foreground">Mayor cantidad de marcadores exactos</span> (3 puntos).
               </li>
               <li>
-                <span className="font-semibold text-foreground">Mayor cantidad de resultados correctos</span> (1 punto).
-              </li>
-              <li>
-                Si persiste el empate, los participantes empatados comparten el premio proporcionalmente.
+                Si persiste el empate, los participantes empatados{" "}
+                <span className="font-semibold text-foreground">comparten el premio en partes iguales</span>.
               </li>
             </ol>
             <div className="rounded-xl border border-info/30 bg-info/5 p-4 text-xs">
               <p className="font-semibold text-info">Ejemplo de redistribución por empate:</p>
               <p className="mt-1">
-                Si dos personas empatan en 1° lugar, se reparten el 60% + 25% = 85% entre ambas (42.5% cada una). El 3° lugar recibe el 10% y el 4° el 5%.
+                Si dos personas empatan en 1° lugar (mismos puntos y mismos exactos), se reparten el 60% + 25% = 85%
+                entre ambas (42.5% cada una). El 3° lugar recibe el 10% y el 4° el 5%.
               </p>
             </div>
           </CardContent>
@@ -213,19 +285,17 @@ function ReglasPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                La polla cubre únicamente la <span className="font-semibold text-foreground">fase de grupos</span> del Mundial FIFA 2026 (72 partidos).
+                Puedes inscribirte en tantos concursos como quieras; cada uno se paga y se premia por separado.
               </li>
               <li>
-                No se pronostican partidos de eliminatorias (octavos, cuartos, semis, final).
+                El marcador de un partido es el mismo en todos tus concursos: lo capturas una vez.
               </li>
               <li>
-                El organizador tiene la facultad de resolver cualquier situación no prevista en estas reglas.
+                El organizador tiene la facultad de resolver cualquier situación no prevista en estas reglas, y sus
+                decisiones son finales e inapelables.
               </li>
               <li>
-                Las decisiones del organizador son finales e inapelables.
-              </li>
-              <li>
-                Al inscribirte, aceptas cumplir con todas las reglas y el pago de la cuota de participación.
+                Al inscribirte, aceptas cumplir con todas las reglas y el pago de la cuota del concurso.
               </li>
             </ul>
           </CardContent>
@@ -242,16 +312,20 @@ function ReglasPage() {
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                <span className="font-semibold text-foreground">11 de junio de 2026:</span> Inicio del Mundial FIFA 2026 y cierre de inscripciones.
+                <span className="font-semibold text-foreground">11 de junio de 2026:</span> Inicio del Mundial FIFA
+                2026 (primer partido de la fase de grupos).
               </li>
               <li>
-                <span className="font-semibold text-foreground">Durante la fase de grupos:</span> Los pronósticos se pueden modificar hasta 1 hora antes de cada partido.
+                <span className="font-semibold text-foreground">Cierre de cada concurso:</span> al iniciar el primer
+                partido de su alcance. Después de esa hora no se admiten inscripciones para ese concurso.
               </li>
               <li>
-                <span className="font-semibold text-foreground">Al finalizar la fase de grupos:</span> Se calculan los puntos finales y se determina la tabla de posiciones.
+                <span className="font-semibold text-foreground">Durante el torneo:</span> cada marcador se puede
+                guardar hasta el kickoff de su partido; una vez guardado no se edita.
               </li>
               <li>
-                <span className="font-semibold text-foreground">Entrega de premios:</span> Dentro de las 48 horas posteriores al cierre de la fase de grupos.
+                <span className="font-semibold text-foreground">Al cerrar un concurso:</span> se calculan los puntos
+                y se determina su tabla y la distribución del pozo.
               </li>
             </ul>
           </CardContent>
@@ -260,10 +334,10 @@ function ReglasPage() {
 
       <div className="mt-10 flex flex-wrap justify-center gap-3">
         <Button asChild variant="hero" size="lg">
-          <Link to="/">Volver al inicio</Link>
+          <Link to="/concursos">Ver concursos</Link>
         </Button>
         <Button asChild variant="secondary" size="lg">
-          <a href="/login">Iniciar sesión</a>
+          <Link to="/">Volver al inicio</Link>
         </Button>
       </div>
     </main>
