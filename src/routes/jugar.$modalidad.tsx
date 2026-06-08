@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Loader2, ArrowLeft, ArrowRight, Trophy } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Trophy, Search, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConcursosOverview, useMyInscripciones } from "@/hooks/useConcursos";
 import { ConcursoGrid } from "@/components/ConcursoGrid";
@@ -8,6 +8,15 @@ import { ScoringExample } from "@/components/ScoringExample";
 import { ModalidadRules } from "@/components/ModalidadRules";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { dateLabelET } from "@/lib/format";
 import { useT, tStatic } from "@/lib/i18n";
 import {
   isModalidad,
