@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Loader2, Trophy, Target, ListChecks, Coins, ArrowRight } from "lucide-react";
+import { Loader2, Trophy, Target, ListChecks, Coins, ArrowRight, Ticket } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches, useMyPredictions, useLeaderboard } from "@/hooks/useData";
+import { useMyInscripciones, useConcursosOverview } from "@/hooks/useConcursos";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
