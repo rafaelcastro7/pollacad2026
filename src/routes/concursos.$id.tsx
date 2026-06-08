@@ -432,6 +432,80 @@ function ConcursoDetailPage() {
         )}
       </section>
 
+      {/* Guided prompt shown when a player taps a match before being ready */}
+      <AlertDialog open={prompt !== null} onOpenChange={(o) => !o && setPrompt(null)}>
+        <AlertDialogContent>
+          {prompt?.mode === "login" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.loginTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.loginDesc", { match: prompt.match })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("detail.joinPrompt.cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => router.navigate({ to: "/login" })}>
+                  {t("detail.joinPrompt.login")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "join" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.title")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.desc", {
+                    match: prompt.match,
+                    fee: formatCAD(concurso.cuota),
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("detail.joinPrompt.cancel")}</AlertDialogCancel>
+                <Button variant="hero" disabled={joining} onClick={joinContest}>
+                  {joining ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                  {t("detail.joinPrompt.confirm", { fee: formatCAD(concurso.cuota) })}
+                </Button>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "pending" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.pendingTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.pendingDesc", {
+                    match: prompt.match,
+                    fee: formatCAD(concurso.cuota),
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>{t("detail.joinPrompt.ok")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "tba" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.matches.title")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.tba")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>{t("detail.joinPrompt.ok")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
     </main>
   );
 }
