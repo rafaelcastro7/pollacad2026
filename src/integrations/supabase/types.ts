@@ -312,6 +312,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      selftest_concursos: {
+        Args: never
+        Returns: {
+          check_name: string
+          detail: string
+          passed: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
