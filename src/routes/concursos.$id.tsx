@@ -80,6 +80,9 @@ function ConcursoDetailPage() {
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
   const { data: predictions = [] } = useMyPredictions(participant?.id);
   const [joining, setJoining] = useState(false);
+  const [prompt, setPrompt] = useState<
+    { mode: "login" | "join" | "pending" | "tba"; match: string } | null
+  >(null);
 
   const myInscripcion = inscripciones.find((i) => i.concurso_id === id);
   const pozo = concurso ? concurso.cuota * leaderboard.length : 0;
