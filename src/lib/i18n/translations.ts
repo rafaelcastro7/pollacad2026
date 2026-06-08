@@ -1215,6 +1215,13 @@ export const translations: Record<Lang, Dict> = {
     "detail.lb.title": "Classement du concours",
     "detail.lb.empty": "Aucun joueur inscrit et approuvé dans ce concours pour l'instant.",
     "detail.matches.title": "Matchs du concours",
+    "detail.matches.empty": "Aucun match n'a encore été chargé pour ce concours.",
+    "detail.matches.tapToPredict": "Touchez un match pour saisir votre pronostic.",
+    "detail.matches.loginHint": "Connectez-vous et inscrivez-vous pour pronostiquer ces matchs.",
+    "detail.matches.joinHint": "Inscrivez-vous au concours pour pouvoir pronostiquer.",
+    "detail.matches.pendingHint": "Votre paiement est en attente. Une fois approuvé par l'organisateur, vous pourrez pronostiquer.",
+    "detail.matches.tbaHint": "Les pronostics seront activés une fois les équipes définies.",
+    "detail.matches.yourPick": "Votre pronostic : {l}–{v}",
 
     "login.meta.title": "Se connecter — Poule Coupe du monde 2026",
     "login.meta.desc": "Accédez à votre tableau de bord de la poule Coupe du monde FIFA 2026.",
