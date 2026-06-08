@@ -6,6 +6,7 @@ import { useConcursosOverview, useMyInscripciones } from "@/hooks/useConcursos";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCAD, formatET } from "@/lib/format";
+import { useT, tStatic, type TFunc } from "@/lib/i18n";
 import {
   MODALIDAD_LABEL,
   MODALIDAD_ICON,
@@ -19,17 +20,10 @@ import {
 export const Route = createFileRoute("/concursos")({
   head: () => ({
     meta: [
-      { title: "Concursos — Polla Mundial 2026" },
-      {
-        name: "description",
-        content:
-          "Juega la Polla Mundial 2026 en varias modalidades: por partido, por día, por fase o el Mundial completo. Inscríbete y compite por el pozo.",
-      },
-      { property: "og:title", content: "Concursos — Polla Mundial 2026" },
-      {
-        property: "og:description",
-        content: "Por partido, por día, por fase o Mundial completo. Elige tu concurso y compite.",
-      },
+      { title: tStatic("concursos.meta.title") },
+      { name: "description", content: tStatic("concursos.meta.desc") },
+      { property: "og:title", content: tStatic("concursos.meta.title") },
+      { property: "og:description", content: tStatic("concursos.meta.desc") },
     ],
   }),
   component: ConcursosPage,
@@ -39,6 +33,7 @@ const MODALIDADES: ("todos" | Modalidad)[] = ["todos", "mundial", "fase", "dia",
 const ESTADOS: ("todos" | EstadoConcurso)[] = ["todos", "abierto", "cerrado", "finalizado"];
 
 function ConcursosPage() {
+  const t = useT();
   const { participant } = useAuth();
   const { data: concursos = [], isLoading } = useConcursosOverview();
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
@@ -65,15 +60,12 @@ function ConcursosPage() {
 
       <header className="relative">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium text-gold">
-          <Trophy className="size-3.5" /> Mundial FIFA 2026
+          <Trophy className="size-3.5" /> {t("concursos.badge")}
         </span>
         <h1 className="mt-3 font-display text-4xl tracking-wide sm:text-5xl">
-          Elige tu <span className="gold-gradient-text">concurso</span>
+          {t("concursos.titleA")} <span className="gold-gradient-text">{t("concursos.titleB")}</span>
         </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Pronostica una vez y compite donde quieras: por partido, por día de partidos, por fase o el
-          Mundial completo. Cada concurso tiene su propio pozo y tabla.
-        </p>
+        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("concursos.subtitle")}</p>
       </header>
 
       {/* Filters */}
@@ -89,7 +81,7 @@ function ConcursosPage() {
                   : "border-border bg-card text-muted-foreground hover:text-foreground"
               }`}
             >
-              {m === "todos" ? "Todas las modalidades" : MODALIDAD_LABEL[m]}
+              {m === "todos" ? t("concursos.allModalidades") : t(MODALIDAD_LABEL[m])}
             </button>
           ))}
         </div>
@@ -104,7 +96,7 @@ function ConcursosPage() {
                   : "border-border bg-card text-muted-foreground hover:text-foreground"
               }`}
             >
-              {e === "todos" ? "Todos los estados" : ESTADO_META[e].label}
+              {e === "todos" ? t("concursos.allEstados") : t(ESTADO_META[e].labelKey)}
             </button>
           ))}
         </div>
@@ -118,15 +110,13 @@ function ConcursosPage() {
       ) : filtered.length === 0 ? (
         <Card className="mt-8 border-border bg-card p-10 text-center card-shadow">
           <div className="text-4xl">🗂️</div>
-          <p className="mt-3 font-display text-xl tracking-wide">No hay concursos para este filtro</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Prueba con otra modalidad o estado.
-          </p>
+          <p className="mt-3 font-display text-xl tracking-wide">{t("concursos.empty.title")}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("concursos.empty.desc")}</p>
         </Card>
       ) : (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c, i) => (
-            <ConcursoCard key={c.id} c={c} pago={inscMap.get(c.id)} index={i} />
+            <ConcursoCard key={c.id} c={c} pago={inscMap.get(c.id)} index={i} t={t} />
           ))}
         </div>
       )}
@@ -138,10 +128,12 @@ function ConcursoCard({
   c,
   pago,
   index,
+  t,
 }: {
   c: ConcursoOverview;
   pago: string | undefined;
   index: number;
+  t: TFunc;
 }) {
   const Icon = MODALIDAD_ICON[c.modalidad];
   const estadoMeta = ESTADO_META[c.estado];
@@ -158,12 +150,12 @@ function ConcursoCard({
       <Card className="glass-card flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:border-primary/40">
         <div className="flex items-start justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-medium text-muted-foreground">
-            <Icon className="size-3.5" /> {MODALIDAD_LABEL[c.modalidad]}
+            <Icon className="size-3.5" /> {t(MODALIDAD_LABEL[c.modalidad])}
           </span>
           <span
             className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${estadoMeta.cls}`}
           >
-            <span className={`size-1.5 rounded-full ${estadoMeta.dot}`} /> {estadoMeta.label}
+            <span className={`size-1.5 rounded-full ${estadoMeta.dot}`} /> {t(estadoMeta.labelKey)}
           </span>
         </div>
 
@@ -171,21 +163,23 @@ function ConcursoCard({
 
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Pozo</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("common.pozo")}</p>
             <p className="font-display text-lg text-gold">{formatCAD(pozo)}</p>
           </div>
           <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Cuota</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("common.cuota")}</p>
             <p className="font-display text-lg text-foreground">{formatCAD(c.cuota)}</p>
           </div>
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
-            <Users className="size-3.5" /> {c.jugadores} jugador{c.jugadores === 1 ? "" : "es"}
+            <Users className="size-3.5" /> {c.jugadores}{" "}
+            {t(c.jugadores === 1 ? "common.player_one" : "common.player_other")}
           </span>
           <span className="inline-flex items-center gap-1">
-            <ListChecks className="size-3.5" /> {c.partidos} partido{c.partidos === 1 ? "" : "s"}
+            <ListChecks className="size-3.5" /> {c.partidos}{" "}
+            {t(c.partidos === 1 ? "common.match_one" : "common.match_other")}
           </span>
           {c.deadline && (
             <span className="inline-flex items-center gap-1">
@@ -197,13 +191,13 @@ function ConcursoCard({
         <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
           {pagoMeta ? (
             <span className={`rounded-full border px-2 py-0.5 text-xs ${pagoMeta.cls}`}>
-              {pagoMeta.emoji} {pagoMeta.label}
+              {pagoMeta.emoji} {t(pagoMeta.labelKey)}
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground">Sin inscribir</span>
+            <span className="text-xs text-muted-foreground">{t("concursos.notEnrolled")}</span>
           )}
           <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-            Ver <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            {t("common.see")} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
       </Card>

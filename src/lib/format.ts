@@ -1,7 +1,24 @@
 // Date/time helpers. Matches are stored in UTC; participants are in ET (EDT = UTC-4 during June).
 const ET_OFFSET_HOURS = -4;
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+type FmtLang = "es" | "en" | "fr";
+
+const MONTHS: Record<FmtLang, string[]> = {
+  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+  es: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+  fr: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+};
+
+// Module-level current language, kept in sync by the i18n provider via setFormatLang().
+let currentLang: FmtLang = "es";
+
+export function setFormatLang(lang: FmtLang): void {
+  currentLang = lang;
+}
+
+function months(): string[] {
+  return MONTHS[currentLang] ?? MONTHS.en;
+}
 
 function toET(date: Date): Date {
   // Shift to ET by applying the fixed June offset to the UTC components.
@@ -11,7 +28,7 @@ function toET(date: Date): Date {
 /** "Jun 11 · 3:00 PM ET" */
 export function formatET(iso: string): string {
   const et = toET(new Date(iso));
-  const month = MONTHS[et.getUTCMonth()];
+  const month = months()[et.getUTCMonth()];
   const day = et.getUTCDate();
   let h = et.getUTCHours();
   const m = et.getUTCMinutes().toString().padStart(2, "0");
@@ -32,7 +49,7 @@ export function formatUTC(iso: string): string {
 /** "Jun 11" ET date label used for grouping. */
 export function dateLabelET(iso: string): string {
   const et = toET(new Date(iso));
-  return `${MONTHS[et.getUTCMonth()]} ${et.getUTCDate()}`;
+  return `${months()[et.getUTCMonth()]} ${et.getUTCDate()}`;
 }
 
 export function isLocked(iso: string, now: number = Date.now()): boolean {

@@ -34,6 +34,7 @@ import { calculatePrizes, MEDALS } from "@/lib/prizes";
 import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
 import { useConcursosOverview } from "@/hooks/useConcursos";
 import { MODALIDAD_LABEL, ESTADO_META, PAGO_META, type EstadoConcurso, type Modalidad } from "@/lib/concursos";
+import { useT, tStatic } from "@/lib/i18n";
 
 type Participant = Tables<"participants">;
 
@@ -618,6 +619,7 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
 const ESTADOS_OPC: EstadoConcurso[] = ["proximo", "abierto", "cerrado", "finalizado"];
 
 function ConcursosAdmin() {
+  const t = useT();
   const qc = useQueryClient();
   const { data: concursos = [], isLoading } = useConcursosOverview();
   const [generating, setGenerating] = useState(false);
@@ -707,7 +709,7 @@ function ConcursosAdmin() {
               {concursos.map((c) => (
                 <tr key={c.id} className="border-b border-border/60">
                   <td className="p-3 font-medium">{c.nombre}</td>
-                  <td className="p-3 text-muted-foreground">{MODALIDAD_LABEL[c.modalidad as Modalidad]}</td>
+                  <td className="p-3 text-muted-foreground">{t(MODALIDAD_LABEL[c.modalidad as Modalidad])}</td>
                   <td className="p-3 text-center">{c.jugadores}</td>
                   <td className="p-3 text-right">
                     <input
@@ -730,7 +732,7 @@ function ConcursosAdmin() {
                     >
                       {ESTADOS_OPC.map((s) => (
                         <option key={s} value={s}>
-                          {ESTADO_META[s].label}
+                          {t(ESTADO_META[s].labelKey)}
                         </option>
                       ))}
                     </select>
@@ -777,6 +779,7 @@ function ManageInscripcionesDialog({
   onClose: () => void;
   onChanged: () => void;
 }) {
+  const t = useT();
   const qc = useQueryClient();
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-inscripciones", concurso?.id],
@@ -822,7 +825,7 @@ function ManageInscripcionesDialog({
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{r.participants?.nombre ?? "—"}</p>
                   <span className={`rounded-full border px-2 py-0.5 text-xs ${PAGO_META[r.estado_pago as keyof typeof PAGO_META].cls}`}>
-                    {PAGO_META[r.estado_pago as keyof typeof PAGO_META].emoji} {PAGO_META[r.estado_pago as keyof typeof PAGO_META].label}
+                    {PAGO_META[r.estado_pago as keyof typeof PAGO_META].emoji} {t(PAGO_META[r.estado_pago as keyof typeof PAGO_META].labelKey)}
                   </span>
                 </div>
                 <div className="flex gap-2">

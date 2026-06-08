@@ -16,12 +16,13 @@ import { calculatePrizes, MEDALS, positionLabel, type LeaderboardRow } from "@/l
 import { ENTRY_FEE } from "@/lib/constants";
 import { formatCAD, formatET } from "@/lib/format";
 import { flag } from "@/lib/flags";
+import { useT, tStatic, type TFunc } from "@/lib/i18n";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
     meta: [
-      { title: "Tabla de posiciones — Polla Mundial 2026" },
-      { name: "description", content: "Clasificación en vivo de la Polla Mundial FIFA 2026." },
+      { title: tStatic("lb.meta.title") },
+      { name: "description", content: tStatic("lb.meta.desc") },
     ],
   }),
   component: LeaderboardPage,
@@ -35,6 +36,7 @@ const rowBg: Record<number, string> = {
 };
 
 function LeaderboardPage() {
+  const t = useT();
   const { participant } = useAuth();
   const { data: rows = [], isLoading } = useLeaderboard();
   const [selected, setSelected] = useState<LeaderboardRow | null>(null);
@@ -46,23 +48,23 @@ function LeaderboardPage() {
     <main className="mx-auto max-w-4xl px-4 py-8">
       <div className="flex items-center gap-3">
         <h1 className="font-display text-4xl tracking-wide">
-          <span aria-hidden>🏅 </span>Tabla de posiciones
+          <span aria-hidden>🏅 </span>{t("lb.title")}
         </h1>
         <span className="flex items-center gap-1.5 text-xs text-primary">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
           </span>
-          EN VIVO
+          {t("lb.live")}
         </span>
       </div>
       <p className="mt-1 text-sm text-muted-foreground">
-        {rows.length} participantes · Pozo: <span className="text-gold">{formatCAD(totalPot)}</span> · Se actualiza en tiempo real
+        {t("lb.subtitle", { n: rows.length, pot: formatCAD(totalPot) })}
       </p>
 
       {/* Prize projection */}
       <Card className="mt-6 border-gold/30 bg-card p-5 card-shadow">
-        <h2 className="font-display text-xl tracking-wide">Si el torneo terminara hoy</h2>
+        <h2 className="font-display text-xl tracking-wide">{t("lb.ifEndedToday")}</h2>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[1, 2, 3, 4].map((pos) => {
             const winners = rows.filter((r) => r.posicion === pos);
@@ -72,7 +74,9 @@ function LeaderboardPage() {
                 <div className="text-2xl">{MEDALS[pos]}</div>
                 <div className="mt-1 font-display text-2xl text-gold">{formatCAD(amt)}</div>
                 <div className="text-xs text-muted-foreground">
-                  {winners.length > 0 ? `${winners.length} jugador${winners.length > 1 ? "es" : ""}` : "—"}
+                  {winners.length > 0
+                    ? t(winners.length === 1 ? "lb.winners_one" : "lb.winners_other", { n: winners.length })
+                    : "—"}
                 </div>
               </div>
             );
@@ -86,19 +90,19 @@ function LeaderboardPage() {
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
       ) : rows.length === 0 ? (
-        <p className="py-16 text-center text-muted-foreground">Aún no hay participantes aprobados</p>
+        <p className="py-16 text-center text-muted-foreground">{t("lb.empty")}</p>
       ) : (
         <Card className="mt-6 overflow-hidden border-border bg-card card-shadow">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="p-3">Pos</th>
-                  <th className="p-3">Participante</th>
-                  <th className="p-3 text-center">Pts</th>
+                  <th className="p-3">{t("common.pos")}</th>
+                  <th className="p-3">{t("lb.col.participant")}</th>
+                  <th className="p-3 text-center">{t("common.pts")}</th>
                   <th className="p-3 text-center">⭐</th>
                   <th className="p-3 text-center">✓</th>
-                  <th className="p-3 text-right">Premio</th>
+                  <th className="p-3 text-right">{t("common.prize")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -116,7 +120,7 @@ function LeaderboardPage() {
                         {MEDALS[r.posicion] ?? positionLabel(r.posicion, rows)}
                       </td>
                       <td className="p-3 font-medium">
-                        {r.nombre} {isMe && <span className="text-xs text-info">(tú)</span>}
+                        {r.nombre} {isMe && <span className="text-xs text-info">({t("common.you")})</span>}
                       </td>
                       <td className="p-3 text-center font-display text-lg text-gold">{r.total_puntos}</td>
                       <td className="p-3 text-center text-muted-foreground">{r.exactos}</td>
@@ -131,12 +135,12 @@ function LeaderboardPage() {
         </Card>
       )}
 
-      <HistoryDialog row={selected} onClose={() => setSelected(null)} />
+      <HistoryDialog row={selected} onClose={() => setSelected(null)} t={t} />
     </main>
   );
 }
 
-function HistoryDialog({ row, onClose }: { row: LeaderboardRow | null; onClose: () => void }) {
+function HistoryDialog({ row, onClose, t }: { row: LeaderboardRow | null; onClose: () => void; t: TFunc }) {
   const { data, isLoading } = useQuery({
     queryKey: ["participant-history", row?.participant_id],
     enabled: !!row,
@@ -154,7 +158,7 @@ function HistoryDialog({ row, onClose }: { row: LeaderboardRow | null; onClose: 
       <DialogContent className="max-h-[80vh] overflow-y-auto border-border bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl tracking-wide">
-            {row?.nombre} · {row?.total_puntos} pts
+            {row?.nombre} · {t("lb.dialog.pts", { n: row?.total_puntos ?? 0 })}
           </DialogTitle>
         </DialogHeader>
         {isLoading ? (
@@ -172,14 +176,14 @@ function HistoryDialog({ row, onClose }: { row: LeaderboardRow | null; onClose: 
                 <div key={m.match_id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-xs">
-                      {flag(m.equipo_local)} {m.equipo_local} vs {m.equipo_visitante} {flag(m.equipo_visitante)}
+                      {flag(m.equipo_local)} {m.equipo_local} {t("common.vs")} {m.equipo_visitante} {flag(m.equipo_visitante)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">{formatET(m.kickoff_time)}</p>
                   </div>
                   <div className="text-right text-xs">
-                    <div>Pron: {hasPred ? `${m.goles_local_pred}–${m.goles_visitante_pred}` : "–"}</div>
+                    <div>{t("lb.dialog.pred")} {hasPred ? `${m.goles_local_pred}–${m.goles_visitante_pred}` : "–"}</div>
                     {hasResult && (
-                      <div className="text-gold">Real: {m.goles_local}–{m.goles_visitante}</div>
+                      <div className="text-gold">{t("lb.dialog.real")} {m.goles_local}–{m.goles_visitante}</div>
                     )}
                   </div>
                   <span className={`w-8 text-right font-display text-base ${color}`}>+{pts}</span>

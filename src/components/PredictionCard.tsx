@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
 import { formatET, formatUTC, isLocked } from "@/lib/format";
 import { getMatchStatus, type MatchLike, type PredLike } from "@/lib/matchStatus";
+import { useT } from "@/lib/i18n";
 import type { Match, Prediction } from "@/hooks/useData";
 
 type SaveState = "idle" | "saving" | "error";
@@ -44,6 +45,7 @@ export function PredictionCard({
   participantId: string;
   onSaved: () => void;
 }) {
+  const t = useT();
   const [local, setLocal] = useState<string>(prediction?.goles_local_pred?.toString() ?? "");
   const [visit, setVisit] = useState<string>(prediction?.goles_visitante_pred?.toString() ?? "");
   const [save, setSave] = useState<SaveState>("idle");
@@ -85,11 +87,11 @@ export function PredictionCard({
       <span
         className={`absolute right-3 top-3 rounded-full border px-2 py-0.5 text-[11px] font-medium ${status.className}`}
       >
-        {status.emoji} {status.label}
+        {status.emoji} {t(status.labelKey)}
       </span>
 
       <div className="text-xs text-muted-foreground">
-        Grupo {match.grupo} · Partido #{match.numero_partido}
+        {t("card.group", { g: match.grupo, n: match.numero_partido })}
       </div>
 
       <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -110,7 +112,7 @@ export function PredictionCard({
             onKeyDown={allowOnlyDigits}
             onChange={(e) => setLocal(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
-            aria-label={`Goles ${match.equipo_local}`}
+            aria-label={t("card.goalsFor", { team: match.equipo_local })}
           />
           <span className="text-muted-foreground">—</span>
           <Input
@@ -124,7 +126,7 @@ export function PredictionCard({
             onKeyDown={allowOnlyDigits}
             onChange={(e) => setVisit(filterDigits(e.target.value))}
             className="h-12 w-12 px-0 text-center font-display text-2xl"
-            aria-label={`Goles ${match.equipo_visitante}`}
+            aria-label={t("card.goalsFor", { team: match.equipo_visitante })}
           />
         </div>
 
@@ -136,7 +138,7 @@ export function PredictionCard({
 
       {hasResult && (
         <p className="mt-3 text-center text-sm">
-          Resultado: <span className="font-display text-lg text-gold">{match.goles_local} — {match.goles_visitante}</span>
+          {t("card.result")} <span className="font-display text-lg text-gold">{match.goles_local} — {match.goles_visitante}</span>
         </p>
       )}
 
@@ -153,26 +155,24 @@ export function PredictionCard({
       {readOnly ? (
         <div className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-muted/50 py-2 text-xs text-muted-foreground">
           <Lock className="size-3" />
-          {committed && !locked
-            ? "Pronóstico guardado · no editable"
-            : "Bloqueado · el partido ya inició"}
+          {committed && !locked ? t("card.committed") : t("card.locked")}
         </div>
       ) : (
         <div className="mt-3 space-y-2">
           <Button size="sm" className="w-full" disabled={!canSave} onClick={handleSave}>
             {save === "saving" ? (
-              "Guardando…"
+              t("common.saving")
             ) : (
               <span className="inline-flex items-center gap-1.5">
-                <Check className="size-4" /> Guardar
+                <Check className="size-4" /> {t("card.save")}
               </span>
             )}
           </Button>
           <p className="text-center text-[11px] text-muted-foreground">
-            ⚠️ Una vez guardado, el pronóstico no se puede editar.
+            {t("card.warnImmutable")}
           </p>
           {save === "error" && (
-            <p className="text-center text-xs text-destructive">Error al guardar. Intenta de nuevo.</p>
+            <p className="text-center text-xs text-destructive">{t("card.saveError")}</p>
           )}
         </div>
       )}

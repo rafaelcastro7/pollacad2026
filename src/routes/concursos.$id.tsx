@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
 import { formatCAD, formatET, dateLabelET } from "@/lib/format";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
+import { useT, tStatic } from "@/lib/i18n";
 import {
   MODALIDAD_LABEL,
   MODALIDAD_ICON,
@@ -36,25 +37,26 @@ import {
 } from "@/lib/concursos";
 
 export const Route = createFileRoute("/concursos/$id")({
-  head: () => ({ meta: [{ title: "Concurso — Polla Mundial 2026" }] }),
+  head: () => ({ meta: [{ title: tStatic("detail.meta.title") }] }),
   component: ConcursoDetailPage,
   errorComponent: ({ error }) => (
     <main className="mx-auto max-w-md px-4 py-16 text-center" role="alert">
       <p className="text-sm text-muted-foreground">{error.message}</p>
       <Button asChild className="mt-4" variant="secondary">
-        <Link to="/concursos">Volver a concursos</Link>
+        <Link to="/concursos">{tStatic("detail.backToContests")}</Link>
       </Button>
     </main>
   ),
   notFoundComponent: () => (
     <main className="mx-auto max-w-md px-4 py-16 text-center">
-      <p className="text-muted-foreground">Concurso no encontrado.</p>
+      <p className="text-muted-foreground">{tStatic("detail.notFound")}</p>
     </main>
   ),
 });
 
 function ConcursoDetailPage() {
   const { id } = Route.useParams();
+  const t = useT();
   const router = useRouter();
   const qc = useQueryClient();
   const { user, participant } = useAuth();
@@ -81,9 +83,9 @@ function ConcursoDetailPage() {
   if (!concurso) {
     return (
       <main className="mx-auto max-w-md px-4 py-16 text-center">
-        <p className="text-muted-foreground">Concurso no encontrado.</p>
+        <p className="text-muted-foreground">{t("detail.notFound")}</p>
         <Button asChild className="mt-4" variant="secondary">
-          <Link to="/concursos">Volver</Link>
+          <Link to="/concursos">{t("common.back")}</Link>
         </Button>
       </main>
     );
@@ -104,10 +106,10 @@ function ConcursoDetailPage() {
     });
     setJoining(false);
     if (error) {
-      toast.error("No se pudo completar la inscripción.");
+      toast.error(t("detail.join.error"));
       return;
     }
-    toast.success("¡Inscripción enviada! El organizador confirmará tu pago.");
+    toast.success(t("detail.join.success"));
     qc.invalidateQueries({ queryKey: ["my-inscripciones", participant.id] });
     qc.invalidateQueries({ queryKey: ["concursos-overview"] });
   };
@@ -125,10 +127,10 @@ function ConcursoDetailPage() {
   }
 
   const stats = [
-    { icon: Coins, label: "Pozo", value: formatCAD(pozo), gold: true },
-    { icon: Users, label: "Jugadores", value: leaderboard.length },
-    { icon: ListChecks, label: "Partidos", value: matches.length },
-    { icon: Coins, label: "Cuota", value: formatCAD(concurso.cuota) },
+    { icon: Coins, label: t("detail.stat.pozo"), value: formatCAD(pozo), gold: true },
+    { icon: Users, label: t("detail.stat.jugadores"), value: leaderboard.length },
+    { icon: ListChecks, label: t("detail.stat.partidos"), value: matches.length },
+    { icon: Coins, label: t("detail.stat.cuota"), value: formatCAD(concurso.cuota) },
   ];
 
   return (
@@ -137,7 +139,7 @@ function ConcursoDetailPage() {
 
       <Button asChild variant="ghost" size="sm" className="mb-4 px-0 text-muted-foreground">
         <Link to="/concursos">
-          <ArrowLeft className="size-4" /> Concursos
+          <ArrowLeft className="size-4" /> {t("nav.concursos")}
         </Link>
       </Button>
 
@@ -145,14 +147,14 @@ function ConcursoDetailPage() {
       <Card className="glass-card p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-medium text-muted-foreground">
-            <Icon className="size-3.5" /> {MODALIDAD_LABEL[concurso.modalidad as Modalidad]}
+            <Icon className="size-3.5" /> {t(MODALIDAD_LABEL[concurso.modalidad as Modalidad])}
           </span>
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${estadoMeta.cls}`}>
-            <span className={`size-1.5 rounded-full ${estadoMeta.dot}`} /> {estadoMeta.label}
+            <span className={`size-1.5 rounded-full ${estadoMeta.dot}`} /> {t(estadoMeta.labelKey)}
           </span>
           {concurso.deadline && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="size-3.5" /> Cierra {formatET(concurso.deadline)}
+              <Clock className="size-3.5" /> {t("detail.closes", { date: formatET(concurso.deadline) })}
             </span>
           )}
         </div>
@@ -176,12 +178,10 @@ function ConcursoDetailPage() {
         <div className="mt-5 flex flex-wrap items-center gap-3">
           {!user ? (
             <Button asChild variant="hero">
-              <Link to="/login">Inicia sesión para inscribirte</Link>
+              <Link to="/login">{t("detail.loginToJoin")}</Link>
             </Button>
           ) : !participant ? (
-            <p className="text-sm text-muted-foreground">
-              Tu cuenta de organizador no participa en concursos.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("detail.orgNoPlay")}</p>
           ) : myInscripcion ? (
             <span
               className={`rounded-full border px-3 py-1.5 text-sm ${
@@ -189,15 +189,15 @@ function ConcursoDetailPage() {
               }`}
             >
               {PAGO_META[myInscripcion.estado_pago as keyof typeof PAGO_META].emoji}{" "}
-              {PAGO_META[myInscripcion.estado_pago as keyof typeof PAGO_META].label}
+              {t(PAGO_META[myInscripcion.estado_pago as keyof typeof PAGO_META].labelKey)}
             </span>
           ) : canJoin ? (
             <Button variant="hero" className="cta-pulse" disabled={joining} onClick={join}>
               {joining ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-              Inscribirme · {formatCAD(concurso.cuota)}
+              {t("detail.join", { fee: formatCAD(concurso.cuota) })}
             </Button>
           ) : (
-            <p className="text-sm text-muted-foreground">Este concurso no admite inscripciones.</p>
+            <p className="text-sm text-muted-foreground">{t("detail.noJoin")}</p>
           )}
 
           {participant?.estado_pago === "aprobado" && teamsDefined && (
@@ -205,7 +205,7 @@ function ConcursoDetailPage() {
               variant="secondary"
               onClick={() => router.navigate({ to: "/predictions", search: { concurso: id } })}
             >
-              <Target className="size-4" /> Pronosticar
+              <Target className="size-4" /> {t("detail.predict")}
             </Button>
           )}
         </div>
@@ -213,10 +213,7 @@ function ConcursoDetailPage() {
         {myInscripcion?.estado_pago === "pendiente" && (
           <div className="mt-4 flex items-start gap-2 rounded-xl border border-gold/40 bg-gold/10 p-3 text-sm text-gold">
             <Lock className="mt-0.5 size-4 shrink-0" />
-            <span>
-              Tu pago está pendiente de confirmación. Coordina la cuota de{" "}
-              <strong>{formatCAD(concurso.cuota)}</strong> con el organizador para aparecer en la tabla.
-            </span>
+            <span>{t("detail.pendingNote", { fee: formatCAD(concurso.cuota) })}</span>
           </div>
         )}
       </Card>
@@ -225,11 +222,11 @@ function ConcursoDetailPage() {
       <section className="mt-8">
         <div className="flex items-center gap-2">
           <Trophy className="size-5 text-gold" />
-          <h2 className="font-display text-2xl tracking-wide">Tabla del concurso</h2>
+          <h2 className="font-display text-2xl tracking-wide">{t("detail.lb.title")}</h2>
         </div>
         {leaderboard.length === 0 ? (
           <Card className="mt-4 border-border bg-card p-8 text-center text-sm text-muted-foreground card-shadow">
-            Aún no hay jugadores inscritos y aprobados en este concurso.
+            {t("detail.lb.empty")}
           </Card>
         ) : (
           <Card className="mt-4 overflow-hidden border-border bg-card card-shadow">
@@ -237,11 +234,11 @@ function ConcursoDetailPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="p-3">Pos</th>
-                    <th className="p-3">Jugador</th>
-                    <th className="p-3 text-center">Pts</th>
+                    <th className="p-3">{t("common.pos")}</th>
+                    <th className="p-3">{t("common.player")}</th>
+                    <th className="p-3 text-center">{t("common.pts")}</th>
                     <th className="p-3 text-center">⭐</th>
-                    <th className="p-3 text-right">Premio</th>
+                    <th className="p-3 text-right">{t("common.prize")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,7 +253,7 @@ function ConcursoDetailPage() {
                           {MEDALS[r.posicion] ?? positionLabel(r.posicion, leaderboard)}
                         </td>
                         <td className="p-3 font-medium">
-                          {r.nombre} {isMe && <span className="text-xs text-info">(tú)</span>}
+                          {r.nombre} {isMe && <span className="text-xs text-info">({t("common.you")})</span>}
                         </td>
                         <td className="p-3 text-center font-display text-lg text-gold">{r.total_puntos}</td>
                         <td className="p-3 text-center text-muted-foreground">{r.exactos}</td>
@@ -275,7 +272,7 @@ function ConcursoDetailPage() {
       <section className="mt-8">
         <div className="flex items-center gap-2">
           <ListChecks className="size-5 text-primary" />
-          <h2 className="font-display text-2xl tracking-wide">Partidos del concurso</h2>
+          <h2 className="font-display text-2xl tracking-wide">{t("detail.matches.title")}</h2>
         </div>
         {ml ? (
           <div className="flex justify-center py-10">
@@ -295,7 +292,7 @@ function ConcursoDetailPage() {
                           {flag(m.equipo_local)} {m.equipo_local}
                         </span>
                         <span className="shrink-0 font-display text-base text-gold">
-                          {hasResult ? `${m.goles_local} — ${m.goles_visitante}` : "vs"}
+                          {hasResult ? `${m.goles_local} — ${m.goles_visitante}` : t("common.vs")}
                         </span>
                         <span className="min-w-0 flex-1">
                           {m.equipo_visitante} {flag(m.equipo_visitante)}

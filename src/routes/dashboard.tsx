@@ -11,9 +11,10 @@ import { formatET, isLocked, formatCAD } from "@/lib/format";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
 import { getMatchStatus } from "@/lib/matchStatus";
 import { ENTRY_FEE, TOTAL_MATCHES, ADMIN_EMAIL } from "@/lib/constants";
+import { useT, tStatic, type TFunc } from "@/lib/i18n";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Mi panel — Polla Mundial 2026" }] }),
+  head: () => ({ meta: [{ title: tStatic("dash.meta.title") }] }),
   component: Dashboard,
 });
 
@@ -23,6 +24,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 function Dashboard() {
   const router = useRouter();
+  const t = useT();
   const { user, participant, isAdmin, loading, signOut } = useAuth();
 
   if (loading) {
@@ -37,9 +39,9 @@ function Dashboard() {
     return (
       <Centered>
         <Card className="w-full border-border bg-card p-8 text-center card-shadow">
-          <p className="text-foreground">Debes iniciar sesión.</p>
+          <p className="text-foreground">{t("dash.mustLogin")}</p>
           <Button className="mt-4" onClick={() => router.navigate({ to: "/login" })}>
-            Iniciar sesión
+            {t("nav.login")}
           </Button>
         </Card>
       </Centered>
@@ -52,12 +54,10 @@ function Dashboard() {
       <Centered>
         <Card className="w-full border-gold/40 bg-gold/5 p-8 text-center card-shadow">
           <div className="text-4xl">🛠️</div>
-          <h1 className="mt-3 font-display text-2xl tracking-wide">Acceso de organizador</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Entraste como organizador. Desde el panel puedes autorizar pagos y cargar resultados.
-          </p>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">{t("dash.org.title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("dash.org.body")}</p>
           <Button variant="hero" className="mt-6" onClick={() => router.navigate({ to: "/admin" })}>
-            Ir al panel de administración
+            {t("dash.org.cta")}
           </Button>
         </Card>
       </Centered>
@@ -66,18 +66,15 @@ function Dashboard() {
 
   const estado = participant?.estado_pago ?? "pendiente";
 
-
   if (estado === "pendiente") {
     return (
       <Centered>
         <Card className="w-full border-gold/40 bg-gold/5 p-8 text-center card-shadow">
           <div className="text-4xl">⏳</div>
-          <h1 className="mt-3 font-display text-2xl tracking-wide">Pago en verificación</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Tu pago está siendo verificado. Volverás en breve.
-          </p>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">{t("dash.pending.title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("dash.pending.body")}</p>
           <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => router.navigate({ to: "/" }))}>
-            Cerrar sesión
+            {t("nav.logout")}
           </Button>
         </Card>
       </Centered>
@@ -89,22 +86,20 @@ function Dashboard() {
       <Centered>
         <Card className="w-full border-destructive/40 bg-destructive/5 p-8 text-center card-shadow">
           <div className="text-4xl">❌</div>
-          <h1 className="mt-3 font-display text-2xl tracking-wide">Pago rechazado</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Tu pago fue rechazado. Contacta a {ADMIN_EMAIL}
-          </p>
+          <h1 className="mt-3 font-display text-2xl tracking-wide">{t("dash.rejected.title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("dash.rejected.body", { email: ADMIN_EMAIL })}</p>
           <Button variant="secondary" className="mt-6" onClick={() => signOut().then(() => router.navigate({ to: "/" }))}>
-            Cerrar sesión
+            {t("nav.logout")}
           </Button>
         </Card>
       </Centered>
     );
   }
 
-  return <ApprovedDashboard participantId={participant!.id} nombre={participant!.nombre} />;
+  return <ApprovedDashboard participantId={participant!.id} nombre={participant!.nombre} t={t} />;
 }
 
-function ApprovedDashboard({ participantId, nombre }: { participantId: string; nombre: string }) {
+function ApprovedDashboard({ participantId, nombre, t }: { participantId: string; nombre: string; t: TFunc }) {
   const { data: matches = [] } = useMatches();
   const { data: preds = [] } = useMyPredictions(participantId);
   const { data: leaderboard = [] } = useLeaderboard();
@@ -152,20 +147,20 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
   const top5 = leaderboard.slice(0, 5);
 
   const stats = [
-    { icon: Trophy, label: "Total puntos", value: myRow?.total_puntos ?? 0, gold: true },
+    { icon: Trophy, label: t("dash.stat.points"), value: myRow?.total_puntos ?? 0, gold: true },
     {
       icon: Target,
-      label: "Posición",
+      label: t("dash.stat.position"),
       value: myRow ? `${MEDALS[myRow.posicion] ?? ""} ${positionLabel(myRow.posicion, leaderboard)}` : "—",
     },
-    { icon: ListChecks, label: "Pronosticados", value: `${predicted} / ${TOTAL_MATCHES}` },
-    { icon: Coins, label: "Premio proyectado", value: formatCAD(myPrize), gold: true },
+    { icon: ListChecks, label: t("dash.stat.predicted"), value: `${predicted} / ${TOTAL_MATCHES}` },
+    { icon: Coins, label: t("dash.stat.prize"), value: formatCAD(myPrize), gold: true },
   ];
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="font-display text-4xl tracking-wide">
-        Hola, <span className="gold-gradient-text">{nombre}</span>
+        {t("dash.hello")} <span className="gold-gradient-text">{nombre}</span>
       </h1>
 
       {/* STATS */}
@@ -190,13 +185,13 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
             <Ticket className="size-5" />
           </div>
           <div>
-            <p className="font-display text-xl tracking-wide">Mis concursos</p>
+            <p className="font-display text-xl tracking-wide">{t("dash.myContests")}</p>
             <p className="text-sm text-muted-foreground">
-              {misConcursos} inscripción{misConcursos === 1 ? "" : "es"}
+              {t(misConcursos === 1 ? "dash.enroll_one" : "dash.enroll_other", { n: misConcursos })}
               {adeudado > 0 && (
                 <>
                   {" · "}
-                  <span className="text-gold">{formatCAD(adeudado)} por pagar</span>
+                  <span className="text-gold">{t("dash.toPay", { amount: formatCAD(adeudado) })}</span>
                 </>
               )}
             </p>
@@ -204,39 +199,37 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
         </div>
         <Button asChild variant="hero" size="sm">
           <Link to="/concursos">
-            Explorar concursos <ArrowRight className="size-4" />
+            {t("dash.explore")} <ArrowRight className="size-4" />
           </Link>
         </Button>
       </Card>
 
-
-
       {/* NEXT MATCHES */}
       <section className="mt-10">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-2xl tracking-wide">Próximos por pronosticar</h2>
+          <h2 className="font-display text-2xl tracking-wide">{t("dash.next.title")}</h2>
           <Button asChild variant="ghost" size="sm">
-            <Link to="/predictions">Ver todos <ArrowRight className="size-4" /></Link>
+            <Link to="/predictions">{t("common.viewAll")} <ArrowRight className="size-4" /></Link>
           </Button>
         </div>
         {upcoming.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">¡Estás al día con tus pronósticos! 🎉</p>
+          <p className="mt-4 text-sm text-muted-foreground">{t("dash.next.upToDate")}</p>
         ) : (
           <div className="mt-4 flex gap-4 overflow-x-auto pb-2 no-scrollbar">
             {upcoming.map((m) => (
               <Card key={m.id} className="min-w-[260px] border-border bg-card p-5 card-shadow">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Grupo {m.grupo}</span>
-                  <span>Partido #{m.numero_partido}</span>
+                  <span>{t("dash.group", { g: m.grupo })}</span>
+                  <span>{t("dash.matchNo", { n: m.numero_partido })}</span>
                 </div>
                 <div className="mt-3 flex items-center justify-center gap-2 text-center">
                   <span className="flex-1 text-sm font-medium">{flag(m.equipo_local)} {m.equipo_local}</span>
-                  <span className="text-muted-foreground">vs</span>
+                  <span className="text-muted-foreground">{t("common.vs")}</span>
                   <span className="flex-1 text-sm font-medium">{m.equipo_visitante} {flag(m.equipo_visitante)}</span>
                 </div>
                 <p className="mt-3 text-center text-xs text-muted-foreground">{formatET(m.kickoff_time)}</p>
                 <Button asChild variant="hero" size="sm" className="mt-4 w-full">
-                  <Link to="/predictions">PRONOSTICAR <ArrowRight className="size-4" /></Link>
+                  <Link to="/predictions">{t("dash.predictBtn")} <ArrowRight className="size-4" /></Link>
                 </Button>
               </Card>
             ))}
@@ -247,9 +240,9 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         {/* RECENT RESULTS */}
         <section>
-          <h2 className="font-display text-2xl tracking-wide">Resultados recientes</h2>
+          <h2 className="font-display text-2xl tracking-wide">{t("dash.recent.title")}</h2>
           {recent.length === 0 ? (
-            <p className="mt-4 text-sm text-muted-foreground">Aún no hay resultados.</p>
+            <p className="mt-4 text-sm text-muted-foreground">{t("dash.recent.empty")}</p>
           ) : (
             <Card className="mt-4 divide-y divide-border border-border bg-card card-shadow">
               {recent.map((m) => {
@@ -261,10 +254,10 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
                   <div key={m.id} className="flex items-center justify-between gap-3 p-4 text-sm">
                     <div className="min-w-0 flex-1">
                       <p className="truncate">
-                        {flag(m.equipo_local)} {m.equipo_local} vs {m.equipo_visitante} {flag(m.equipo_visitante)}
+                        {flag(m.equipo_local)} {m.equipo_local} {t("common.vs")} {m.equipo_visitante} {flag(m.equipo_visitante)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Tu: {p?.goles_local_pred ?? "–"}–{p?.goles_visitante_pred ?? "–"} · Real:{" "}
+                        {t("dash.yourPred")}: {p?.goles_local_pred ?? "–"}–{p?.goles_visitante_pred ?? "–"} · {t("dash.realResult")}:{" "}
                         <span className="text-gold">{m.goles_local}–{m.goles_visitante}</span>
                       </p>
                     </div>
@@ -279,14 +272,14 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
         {/* QUICK LEADERBOARD */}
         <section>
           <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl tracking-wide">Top 5</h2>
+            <h2 className="font-display text-2xl tracking-wide">{t("dash.top5")}</h2>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/leaderboard">Tabla completa <ArrowRight className="size-4" /></Link>
+              <Link to="/leaderboard">{t("dash.fullTable")} <ArrowRight className="size-4" /></Link>
             </Button>
           </div>
           <Card className="mt-4 divide-y divide-border border-border bg-card card-shadow">
             {top5.length === 0 ? (
-              <p className="p-4 text-sm text-muted-foreground">Aún no hay participantes.</p>
+              <p className="p-4 text-sm text-muted-foreground">{t("dash.noParticipants")}</p>
             ) : (
               top5.map((r) => (
                 <div

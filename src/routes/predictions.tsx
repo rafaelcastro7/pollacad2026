@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { dateLabelET, isLocked, hoursUntil } from "@/lib/format";
 import { TOTAL_MATCHES } from "@/lib/constants";
+import { useT, tStatic, type TFunc } from "@/lib/i18n";
 
 export const Route = createFileRoute("/predictions")({
   validateSearch: (search: Record<string, unknown>): { concurso?: string } => ({
     concurso: typeof search.concurso === "string" ? search.concurso : undefined,
   }),
-  head: () => ({ meta: [{ title: "Mis pronósticos — Polla Mundial 2026" }] }),
+  head: () => ({ meta: [{ title: tStatic("pred.meta.title") }] }),
   component: PredictionsPage,
 });
 
@@ -23,6 +24,7 @@ const JORNADAS = [1, 2, 3] as const;
 
 function PredictionsPage() {
   const router = useRouter();
+  const t = useT();
   const { concurso } = Route.useSearch();
   const { user, participant, loading } = useAuth();
 
@@ -38,27 +40,27 @@ function PredictionsPage() {
     return (
       <main className="mx-auto flex min-h-[60vh] max-w-md items-center px-4">
         <Card className="w-full border-border bg-card p-8 text-center card-shadow">
-          <h1 className="font-display text-2xl tracking-wide">Acceso restringido</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Necesitas un pago aprobado para pronosticar.
-          </p>
+          <h1 className="font-display text-2xl tracking-wide">{t("pred.restricted.title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("pred.restricted.body")}</p>
           <Button className="mt-6" onClick={() => router.navigate({ to: "/dashboard" })}>
-            Ir a mi panel
+            {t("pred.restricted.cta")}
           </Button>
         </Card>
       </main>
     );
   }
 
-  return <PredictionsContent participantId={participant.id} concursoId={concurso} />;
+  return <PredictionsContent participantId={participant.id} concursoId={concurso} t={t} />;
 }
 
 function PredictionsContent({
   participantId,
   concursoId,
+  t,
 }: {
   participantId: string;
   concursoId?: string;
+  t: TFunc;
 }) {
   const { data: allMatches = [], isLoading: ml } = useMatches();
   const { data: concursoMatches = [], isLoading: cml } = useConcursoMatches(concursoId);
@@ -134,21 +136,23 @@ function PredictionsContent({
       {scoped && (
         <Button asChild variant="ghost" size="sm" className="mb-3 px-0 text-muted-foreground">
           <Link to="/concursos/$id" params={{ id: concursoId! }}>
-            <ArrowLeft className="size-4" /> Volver al concurso
+            <ArrowLeft className="size-4" /> {t("pred.backToContest")}
           </Link>
         </Button>
       )}
       <h1 className="font-display text-4xl tracking-wide">
-        <span aria-hidden>⚽ </span>Mis Pronósticos
+        <span aria-hidden>⚽ </span>{t("pred.title")}
       </h1>
       <p className="text-sm text-muted-foreground">
-        {scoped ? concurso?.nombre ?? "Concurso" : `${TOTAL_MATCHES} partidos · fase de grupos`}
+        {scoped
+          ? concurso?.nombre ?? t("pred.defaultContest")
+          : t("pred.groupStageSub", { n: TOTAL_MATCHES })}
       </p>
 
       {/* Progress */}
       <div className="mt-4">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Progreso</span>
+          <span className="text-muted-foreground">{t("pred.progress")}</span>
           <span className="font-medium text-foreground">
             {predictedCount}/{total}
           </span>
@@ -160,23 +164,21 @@ function PredictionsContent({
       <div className="mt-4 flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
         <Lock className="mt-0.5 size-4 shrink-0" />
         <span>
-          <strong>Importante:</strong> ingresa el marcador y pulsa <strong>Guardar</strong>. Una vez
-          guardado, el pronóstico <strong>no se puede editar</strong>.
+          <strong>{t("pred.importantTitle")}</strong> {t("pred.important")}
         </span>
       </div>
 
       {scoped && undefinedCount > 0 && (
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-info/40 bg-info/10 p-3 text-sm text-info">
           <AlertTriangle className="size-4 shrink-0" />
-          {undefinedCount} partido{undefinedCount > 1 ? "s" : ""} con equipos por definir se podrá
-          pronosticar cuando se conozcan los clasificados.
+          {t(undefinedCount === 1 ? "pred.tbaNote_one" : "pred.tbaNote_other", { n: undefinedCount })}
         </div>
       )}
 
       {soon > 0 && (
         <div className="mt-4 flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 p-3 text-sm text-gold">
           <AlertTriangle className="size-4 shrink-0" />
-          Tienes {soon} partido{soon > 1 ? "s" : ""} que se juega{soon > 1 ? "n" : ""} pronto — ¡Pronostica antes del kickoff!
+          {t(soon === 1 ? "pred.soon_one" : "pred.soon_other", { n: soon })}
         </div>
       )}
 
@@ -193,7 +195,7 @@ function PredictionsContent({
                   : "border-border bg-card text-muted-foreground hover:text-foreground"
               }`}
             >
-              Jornada {j}
+              {t("pred.jornada", { n: j })}
             </button>
           ))}
         </div>
@@ -203,7 +205,7 @@ function PredictionsContent({
       <div className="mt-6 space-y-8">
         {grouped.length === 0 ? (
           <Card className="border-border bg-card p-8 text-center text-sm text-muted-foreground card-shadow">
-            No hay partidos disponibles para pronosticar todavía.
+            {t("pred.empty")}
           </Card>
         ) : (
           grouped.map((g) => (
@@ -228,11 +230,11 @@ function PredictionsContent({
       {/* Summary bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-4 gap-y-1 px-4 py-3 text-center text-xs sm:text-sm">
-          <span className="text-primary">{predictedCount} pronosticados</span>
+          <span className="text-primary">{t("pred.bar.predicted", { n: predictedCount })}</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-destructive">{lockedNoPred} bloqueados sin pronosticar</span>
+          <span className="text-destructive">{t("pred.bar.locked", { n: lockedNoPred })}</span>
           <span className="text-muted-foreground">·</span>
-          <span className="text-info">{toComplete} por completar</span>
+          <span className="text-info">{t("pred.bar.toComplete", { n: toComplete })}</span>
         </div>
       </div>
     </main>
