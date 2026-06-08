@@ -612,3 +612,242 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
     </div>
   );
 }
+
+/* ---------------- Section D: Concursos ---------------- */
+
+const ESTADOS_OPC: EstadoConcurso[] = ["proximo", "abierto", "cerrado", "finalizado"];
+
+function ConcursosAdmin() {
+  const qc = useQueryClient();
+  const { data: concursos = [], isLoading } = useConcursosOverview();
+  const [generating, setGenerating] = useState(false);
+  const [manage, setManage] = useState<{ id: string; nombre: string } | null>(null);
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ["concursos-overview"] });
+
+  const generate = async (includePartidos: boolean) => {
+    setGenerating(true);
+    const { data, error } = await supabase.rpc("generate_concursos", {
+      _include_partidos: includePartidos,
+    });
+    setGenerating(false);
+    if (error) {
+      toast.error("No se pudieron generar los concursos.");
+      return;
+    }
+    toast.success(`${data ?? 0} concurso(s) creados.`);
+    refresh();
+  };
+
+  const updateField = async (id: string, fields: Record<string, unknown>, msg?: string) => {
+    const { error } = await supabase.from("concursos").update(fields).eq("id", id);
+    if (error) {
+      toast.error("Error al actualizar.");
+      return;
+    }
+    if (msg) toast.success(msg);
+    refresh();
+  };
+
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("concursos").delete().eq("id", id);
+    if (error) {
+      toast.error("Error al eliminar.");
+      return;
+    }
+    toast.success("Concurso eliminado.");
+    refresh();
+  };
+
+  return (
+    <div>
+      <Card className="mb-4 border-gold/30 bg-card p-4 card-shadow">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg tracking-wide">Generación automática</h2>
+            <p className="text-xs text-muted-foreground">
+              Crea los concursos por día, por fase y el Mundial completo. Es idempotente: no duplica.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="hero" size="sm" disabled={generating} onClick={() => generate(false)}>
+              {generating ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              Generar concursos
+            </Button>
+            <Button variant="secondary" size="sm" disabled={generating} onClick={() => generate(true)}>
+              + Incluir por partido
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : concursos.length === 0 ? (
+        <Card className="border-border bg-card p-8 text-center text-sm text-muted-foreground card-shadow">
+          Aún no hay concursos. Usa “Generar concursos”.
+        </Card>
+      ) : (
+        <Card className="overflow-x-auto border-border bg-card card-shadow">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
+                <th className="p-3">Concurso</th>
+                <th className="p-3">Modalidad</th>
+                <th className="p-3 text-center">Jug.</th>
+                <th className="p-3 text-right">Cuota</th>
+                <th className="p-3 text-right">Pozo</th>
+                <th className="p-3">Estado</th>
+                <th className="p-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {concursos.map((c) => (
+                <tr key={c.id} className="border-b border-border/60">
+                  <td className="p-3 font-medium">{c.nombre}</td>
+                  <td className="p-3 text-muted-foreground">{MODALIDAD_LABEL[c.modalidad as Modalidad]}</td>
+                  <td className="p-3 text-center">{c.jugadores}</td>
+                  <td className="p-3 text-right">
+                    <input
+                      type="number"
+                      min={0}
+                      defaultValue={c.cuota}
+                      onBlur={(e) => {
+                        const v = Number(e.target.value);
+                        if (!Number.isNaN(v) && v !== c.cuota) updateField(c.id, { cuota: v }, "Cuota actualizada.");
+                      }}
+                      className="h-8 w-16 rounded-md border border-border bg-background px-2 text-right"
+                    />
+                  </td>
+                  <td className="p-3 text-right text-gold">{formatCAD(c.cuota * c.jugadores)}</td>
+                  <td className="p-3">
+                    <select
+                      value={c.estado}
+                      onChange={(e) => updateField(c.id, { estado: e.target.value })}
+                      className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                    >
+                      {ESTADOS_OPC.map((s) => (
+                        <option key={s} value={s}>
+                          {ESTADO_META[s].label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => setManage({ id: c.id, nombre: c.nombre })}>
+                        <Users className="size-4" />
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => remove(c.id)}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+
+      <ManageInscripcionesDialog
+        concurso={manage}
+        onClose={() => setManage(null)}
+        onChanged={refresh}
+      />
+    </div>
+  );
+}
+
+type InscripcionRow = {
+  id: string;
+  estado_pago: string;
+  participant_id: string;
+  participants: { nombre: string } | null;
+};
+
+function ManageInscripcionesDialog({
+  concurso,
+  onClose,
+  onChanged,
+}: {
+  concurso: { id: string; nombre: string } | null;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const qc = useQueryClient();
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["admin-inscripciones", concurso?.id],
+    enabled: !!concurso,
+    queryFn: async (): Promise<InscripcionRow[]> => {
+      const { data, error } = await supabase
+        .from("inscripciones")
+        .select("id, estado_pago, participant_id, participants(nombre)")
+        .eq("concurso_id", concurso!.id)
+        .order("joined_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as InscripcionRow[];
+    },
+  });
+
+  const setEstado = async (id: string, estado_pago: string) => {
+    const { error } = await supabase.from("inscripciones").update({ estado_pago }).eq("id", id);
+    if (error) {
+      toast.error("Error al actualizar inscripción.");
+      return;
+    }
+    qc.invalidateQueries({ queryKey: ["admin-inscripciones", concurso?.id] });
+    onChanged();
+  };
+
+  return (
+    <Dialog open={!!concurso} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[80vh] overflow-y-auto border-border bg-card">
+        <DialogHeader>
+          <DialogTitle className="font-display text-2xl tracking-wide">{concurso?.nombre}</DialogTitle>
+          <DialogDescription>Gestiona los pagos de las inscripciones.</DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">Aún no hay inscripciones.</p>
+        ) : (
+          <div className="divide-y divide-border">
+            {rows.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 py-3 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{r.participants?.nombre ?? "—"}</p>
+                  <span className={`rounded-full border px-2 py-0.5 text-xs ${PAGO_META[r.estado_pago as keyof typeof PAGO_META].cls}`}>
+                    {PAGO_META[r.estado_pago as keyof typeof PAGO_META].emoji} {PAGO_META[r.estado_pago as keyof typeof PAGO_META].label}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="hero"
+                    size="sm"
+                    disabled={r.estado_pago === "aprobado"}
+                    onClick={() => setEstado(r.id, "aprobado")}
+                  >
+                    ✅
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={r.estado_pago === "rechazado"}
+                    onClick={() => setEstado(r.id, "rechazado")}
+                  >
+                    ❌
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
