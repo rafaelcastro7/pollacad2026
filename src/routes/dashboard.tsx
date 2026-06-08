@@ -1,8 +1,9 @@
 import { useMemo } from "react";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { Loader2, Trophy, Target, ListChecks, Coins, ArrowRight } from "lucide-react";
+import { Loader2, Trophy, Target, ListChecks, Coins, ArrowRight, Ticket } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches, useMyPredictions, useLeaderboard } from "@/hooks/useData";
+import { useMyInscripciones, useConcursosOverview } from "@/hooks/useConcursos";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
@@ -107,6 +108,19 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
   const { data: matches = [] } = useMatches();
   const { data: preds = [] } = useMyPredictions(participantId);
   const { data: leaderboard = [] } = useLeaderboard();
+  const { data: inscripciones = [] } = useMyInscripciones(participantId);
+  const { data: concursos = [] } = useConcursosOverview();
+
+  const concursoById = useMemo(() => {
+    const m = new Map<string, (typeof concursos)[number]>();
+    for (const c of concursos) m.set(c.id, c);
+    return m;
+  }, [concursos]);
+
+  const misConcursos = inscripciones.length;
+  const adeudado = inscripciones
+    .filter((i) => i.estado_pago === "pendiente")
+    .reduce((s, i) => s + (concursoById.get(i.concurso_id)?.cuota ?? 0), 0);
 
   const predByMatch = useMemo(() => {
     const m = new Map<number, (typeof preds)[number]>();
@@ -168,6 +182,34 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
           </Card>
         ))}
       </div>
+
+      {/* MIS CONCURSOS */}
+      <Card className="mt-6 flex flex-wrap items-center justify-between gap-4 border-gold/30 bg-card p-5 card-shadow">
+        <div className="flex items-center gap-3">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-gold/15 text-gold">
+            <Ticket className="size-5" />
+          </div>
+          <div>
+            <p className="font-display text-xl tracking-wide">Mis concursos</p>
+            <p className="text-sm text-muted-foreground">
+              {misConcursos} inscripción{misConcursos === 1 ? "" : "es"}
+              {adeudado > 0 && (
+                <>
+                  {" · "}
+                  <span className="text-gold">{formatCAD(adeudado)} por pagar</span>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+        <Button asChild variant="hero" size="sm">
+          <Link to="/concursos">
+            Explorar concursos <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </Card>
+
+
 
       {/* NEXT MATCHES */}
       <section className="mt-10">

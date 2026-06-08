@@ -139,7 +139,7 @@ function Landing() {
               size="lg"
               className="h-12 border border-border px-10 text-base uppercase tracking-wider backdrop-blur-md"
             >
-              <Link to="/leaderboard">Ver tabla</Link>
+              <Link to="/concursos">Ver concursos</Link>
             </Button>
           </div>
         </div>

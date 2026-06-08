@@ -14,11 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      concursos: {
+        Row: {
+          alcance: Json
+          created_at: string
+          cuota: number
+          deadline: string | null
+          estado: string
+          id: string
+          modalidad: string
+          nombre: string
+          updated_at: string
+        }
+        Insert: {
+          alcance?: Json
+          created_at?: string
+          cuota?: number
+          deadline?: string | null
+          estado?: string
+          id?: string
+          modalidad: string
+          nombre: string
+          updated_at?: string
+        }
+        Update: {
+          alcance?: Json
+          created_at?: string
+          cuota?: number
+          deadline?: string | null
+          estado?: string
+          id?: string
+          modalidad?: string
+          nombre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inscripciones: {
+        Row: {
+          concurso_id: string
+          estado_pago: string
+          id: string
+          joined_at: string
+          participant_id: string
+        }
+        Insert: {
+          concurso_id: string
+          estado_pago?: string
+          id?: string
+          joined_at?: string
+          participant_id: string
+        }
+        Update: {
+          concurso_id?: string
+          estado_pago?: string
+          id?: string
+          joined_at?: string
+          participant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscripciones_concurso_id_fkey"
+            columns: ["concurso_id"]
+            isOneToOne: false
+            referencedRelation: "concursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscripciones_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           equipo_local: string
           equipo_visitante: string
           estadio: string
+          fase: string
           goles_local: number | null
           goles_visitante: number | null
           grupo: string
@@ -31,6 +107,7 @@ export type Database = {
           equipo_local: string
           equipo_visitante: string
           estadio: string
+          fase?: string
           goles_local?: number | null
           goles_visitante?: number | null
           grupo: string
@@ -43,6 +120,7 @@ export type Database = {
           equipo_local?: string
           equipo_visitante?: string
           estadio?: string
+          fase?: string
           goles_local?: number | null
           goles_visitante?: number | null
           grupo?: string
@@ -148,6 +226,57 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_concursos: {
+        Args: { _include_partidos?: boolean }
+        Returns: number
+      }
+      get_concurso_leaderboard: {
+        Args: { _concurso_id: string }
+        Returns: {
+          exactos: number
+          ganadores: number
+          nombre: string
+          participant_id: string
+          posicion: number
+          total_puntos: number
+        }[]
+      }
+      get_concurso_matches: {
+        Args: { _concurso_id: string }
+        Returns: {
+          equipo_local: string
+          equipo_visitante: string
+          estadio: string
+          fase: string
+          goles_local: number | null
+          goles_visitante: number | null
+          grupo: string
+          id: number
+          jornada: number
+          kickoff_time: string
+          numero_partido: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      get_concursos_overview: {
+        Args: never
+        Returns: {
+          alcance: Json
+          cuota: number
+          deadline: string
+          estado: string
+          id: string
+          jugadores: number
+          modalidad: string
+          nombre: string
+          partidos: number
+        }[]
+      }
       get_leaderboard: {
         Args: never
         Returns: {
