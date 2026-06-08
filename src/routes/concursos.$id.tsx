@@ -12,6 +12,7 @@ import {
   Trophy,
   Target,
   Lock,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -20,11 +21,13 @@ import {
   useConcursoLeaderboard,
   useMyInscripciones,
 } from "@/hooks/useConcursos";
+import { useMyPredictions } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
-import { formatCAD, formatET, dateLabelET } from "@/lib/format";
+import { formatCAD, formatET, dateLabelET, isLocked } from "@/lib/format";
+import { getMatchStatus } from "@/lib/matchStatus";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
 import { useT, tStatic } from "@/lib/i18n";
 import {
