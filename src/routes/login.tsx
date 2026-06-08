@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { aliasToEmail, pinToPassword, PIN_RE } from "@/lib/auth";
+import { useT, tStatic } from "@/lib/i18n";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Iniciar sesión — Polla Mundial 2026" },
-      { name: "description", content: "Accede a tu panel de la Polla Mundial FIFA 2026." },
+      { title: tStatic("login.meta.title") },
+      { name: "description", content: tStatic("login.meta.desc") },
     ],
   }),
   component: LoginPage,
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const [alias, setAlias] = useState("");
   const [pin, setPin] = useState("");
   const [orgMode, setOrgMode] = useState(false);
@@ -37,21 +39,21 @@ function LoginPage() {
         : { email: aliasToEmail(alias.trim()), password: pinToPassword(pin) };
 
       if (!orgMode && !PIN_RE.test(pin)) {
-        toast.error("El PIN debe ser de 4 dígitos.");
+        toast.error(t("login.pinError"));
         return;
       }
 
       const { error } = await supabase.auth.signInWithPassword(creds);
       if (error) throw error;
-      toast.success("¡Bienvenido!");
+      toast.success(t("login.welcome"));
       router.navigate({ to: orgMode ? "/admin" : "/dashboard" });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Error al iniciar sesión.";
+      const msg = err instanceof Error ? err.message : t("login.genericError");
       toast.error(
         msg.includes("Invalid login")
           ? orgMode
-            ? "Email o contraseña incorrectos."
-            : "Alias o PIN incorrectos."
+            ? t("login.badOrg")
+            : t("login.badUser")
           : msg,
       );
     } finally {
@@ -62,30 +64,30 @@ function LoginPage() {
   return (
     <main className="mx-auto flex min-h-[80vh] max-w-md items-center px-4">
       <Card className="w-full border-border bg-card p-8 card-shadow">
-        <h1 className="font-display text-3xl tracking-wide">Iniciar sesión</h1>
+        <h1 className="font-display text-3xl tracking-wide">{t("login.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {orgMode ? "Acceso del organizador." : "Entra con tu alias y PIN."}
+          {orgMode ? t("login.orgSub") : t("login.userSub")}
         </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {orgMode ? (
             <>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("login.email")}</Label>
                 <Input id="email" type="email" value={orgEmail} onChange={(e) => setOrgEmail(e.target.value)} placeholder="tu@email.com" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pass">Contraseña</Label>
+                <Label htmlFor="pass">{t("login.password")}</Label>
                 <Input id="pass" type="password" value={orgPass} onChange={(e) => setOrgPass(e.target.value)} placeholder="••••••••" />
               </div>
             </>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="alias">Nombre o alias</Label>
-                <Input id="alias" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Tu alias" maxLength={24} />
+                <Label htmlFor="alias">{t("login.alias")}</Label>
+                <Input id="alias" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder={t("login.aliasPh")} maxLength={24} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pin">PIN (4 dígitos)</Label>
+                <Label htmlFor="pin">{t("login.pin")}</Label>
                 <Input
                   id="pin"
                   type="password"
@@ -99,14 +101,14 @@ function LoginPage() {
           )}
           <Button type="submit" variant="hero" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-            Iniciar sesión
+            {t("login.submit")}
           </Button>
         </form>
         <div className="mt-6 space-y-2 text-center text-sm text-muted-foreground">
           <p>
-            ¿No tienes cuenta?{" "}
+            {t("login.noAccount")}{" "}
             <Link to="/" className="text-primary hover:underline">
-              Regístrate
+              {t("login.register")}
             </Link>
           </p>
           <button
@@ -114,7 +116,7 @@ function LoginPage() {
             onClick={() => setOrgMode((v) => !v)}
             className="text-xs text-muted-foreground/70 hover:text-foreground"
           >
-            {orgMode ? "← Soy participante" : "Acceso organizador"}
+            {orgMode ? t("login.toUser") : t("login.toOrg")}
           </button>
         </div>
       </Card>

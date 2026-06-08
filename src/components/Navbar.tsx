@@ -2,38 +2,41 @@ import { useState } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Menu, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useT } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { user, isAdmin, participant } = useAuth();
+  const t = useT();
   const approved = participant?.estado_pago === "aprobado";
   const linkCls =
     "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary";
   return (
     <>
       <Link to="/concursos" className={linkCls} onClick={onNavigate}>
-        Concursos
+        {t("nav.concursos")}
       </Link>
       <Link to="/leaderboard" className={linkCls} onClick={onNavigate}>
-        Tabla
+        {t("nav.tabla")}
       </Link>
       <Link to="/reglas" className={linkCls} onClick={onNavigate}>
-        Reglas
+        {t("nav.reglas")}
       </Link>
       {user && (
         <Link to="/dashboard" className={linkCls} onClick={onNavigate}>
-          Dashboard
+          {t("nav.dashboard")}
         </Link>
       )}
       {user && approved && (
         <Link to="/predictions" className={linkCls} onClick={onNavigate}>
-          Pronósticos
+          {t("nav.pronosticos")}
         </Link>
       )}
       {isAdmin && (
         <Link to="/admin" className={linkCls} onClick={onNavigate}>
-          Admin
+          {t("nav.admin")}
         </Link>
       )}
     </>
@@ -42,6 +45,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Navbar() {
   const { user, participant, isAdmin, signOut } = useAuth();
+  const t = useT();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -51,7 +55,7 @@ export function Navbar() {
     router.navigate({ to: "/" });
   };
 
-  const name = participant?.nombre ?? (isAdmin ? "Organizador" : user?.email ?? "");
+  const name = participant?.nombre ?? (isAdmin ? t("nav.organizador") : user?.email ?? "");
   const initial = (name || "?").charAt(0).toUpperCase();
 
   return (
@@ -67,6 +71,7 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
+          <LanguageSwitcher />
           {user ? (
             <>
               <div className="flex items-center gap-2">
@@ -75,24 +80,25 @@ export function Navbar() {
                 </div>
                 <div className="flex flex-col leading-tight">
                   <span className="max-w-[160px] truncate text-sm text-foreground">{name}</span>
-                  {isAdmin && <span className="text-[10px] uppercase tracking-wide text-gold">Organizador</span>}
+                  {isAdmin && <span className="text-[10px] uppercase tracking-wide text-gold">{t("nav.organizador")}</span>}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Cerrar sesión">
+              <Button variant="ghost" size="icon" onClick={handleLogout} aria-label={t("nav.logout")}>
                 <LogOut className="size-4" />
               </Button>
             </>
           ) : (
             <Button asChild variant="secondary">
-              <Link to="/login">Iniciar sesión</Link>
+              <Link to="/login">{t("nav.login")}</Link>
             </Button>
           )}
         </div>
 
-        <div className="md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
+          <LanguageSwitcher />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Menú">
+              <Button variant="ghost" size="icon" aria-label={t("nav.menu")}>
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
@@ -108,12 +114,12 @@ export function Navbar() {
                   <div className="space-y-3">
                     <p className="text-sm text-muted-foreground">{name}</p>
                     <Button variant="secondary" className="w-full" onClick={handleLogout}>
-                      <LogOut className="mr-2 size-4" /> Cerrar sesión
+                      <LogOut className="mr-2 size-4" /> {t("nav.logout")}
                     </Button>
                   </div>
                 ) : (
                   <Button asChild className="w-full" onClick={() => setOpen(false)}>
-                    <Link to="/login">Iniciar sesión</Link>
+                    <Link to="/login">{t("nav.login")}</Link>
                   </Button>
                 )}
               </div>

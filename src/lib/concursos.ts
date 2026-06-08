@@ -20,11 +20,19 @@ export interface ConcursoOverview {
   partidos: number;
 }
 
+// i18n key maps — resolve with the t() helper in components.
 export const MODALIDAD_LABEL: Record<Modalidad, string> = {
-  partido: "Por partido",
-  dia: "Día de partidos",
-  fase: "Por fase",
-  mundial: "Mundial completo",
+  partido: "modalidad.partido",
+  dia: "modalidad.dia",
+  fase: "modalidad.fase",
+  mundial: "modalidad.mundial",
+};
+
+export const MODALIDAD_DESC: Record<Modalidad, string> = {
+  partido: "modalidad.partido.desc",
+  dia: "modalidad.dia.desc",
+  fase: "modalidad.fase.desc",
+  mundial: "modalidad.mundial.desc",
 };
 
 export const MODALIDAD_ICON = {
@@ -34,34 +42,27 @@ export const MODALIDAD_ICON = {
   mundial: Trophy,
 } as const;
 
-export const MODALIDAD_DESC: Record<Modalidad, string> = {
-  partido: "Un solo partido. Apuesta rápida.",
-  dia: "Todos los partidos de un mismo día.",
-  fase: "Una ronda completa del torneo.",
-  mundial: "Los 104 partidos del Mundial.",
-};
-
 export const ESTADO_META: Record<
   EstadoConcurso,
-  { label: string; cls: string; dot: string }
+  { labelKey: string; cls: string; dot: string }
 > = {
   abierto: {
-    label: "Abierto",
+    labelKey: "estado.abierto",
     cls: "border-primary/40 bg-primary/15 text-primary",
     dot: "bg-primary",
   },
   cerrado: {
-    label: "Cerrado",
+    labelKey: "estado.cerrado",
     cls: "border-gold/40 bg-gold/15 text-gold",
     dot: "bg-gold",
   },
   finalizado: {
-    label: "Finalizado",
+    labelKey: "estado.finalizado",
     cls: "border-muted-foreground/30 bg-muted/40 text-muted-foreground",
     dot: "bg-muted-foreground",
   },
   proximo: {
-    label: "Próximamente",
+    labelKey: "estado.proximo",
     cls: "border-info/40 bg-info/10 text-info",
     dot: "bg-info",
   },
@@ -69,9 +70,9 @@ export const ESTADO_META: Record<
 
 export const PAGO_META: Record<
   EstadoPago,
-  { label: string; cls: string; emoji: string }
+  { labelKey: string; cls: string; emoji: string }
 > = {
-  pendiente: { label: "Pago pendiente", cls: "border-gold/40 bg-gold/15 text-gold", emoji: "🟡" },
-  aprobado: { label: "Inscrito", cls: "border-primary/40 bg-primary/15 text-primary", emoji: "✅" },
-  rechazado: { label: "Rechazado", cls: "border-destructive/40 bg-destructive/15 text-destructive", emoji: "❌" },
+  pendiente: { labelKey: "pago.pendiente", cls: "border-gold/40 bg-gold/15 text-gold", emoji: "🟡" },
+  aprobado: { labelKey: "pago.aprobado", cls: "border-primary/40 bg-primary/15 text-primary", emoji: "✅" },
+  rechazado: { labelKey: "pago.rechazado", cls: "border-destructive/40 bg-destructive/15 text-destructive", emoji: "❌" },
 };

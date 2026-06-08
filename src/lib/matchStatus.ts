@@ -15,18 +15,18 @@ export interface PredLike {
 
 export interface StatusInfo {
   key: StatusKey;
-  label: string;
+  labelKey: string;
   emoji: string;
   className: string;
 }
 
-const STYLES: Record<StatusKey, { label: string; emoji: string; className: string }> = {
-  exacto: { label: "Exacto", emoji: "✅", className: "bg-primary/15 text-primary border-primary/40" },
-  ganador: { label: "Ganador", emoji: "🟢", className: "bg-success/10 text-success border-success/30" },
-  fallido: { label: "Fallido", emoji: "❌", className: "bg-destructive/15 text-destructive border-destructive/40" },
-  bloqueado: { label: "Bloqueado", emoji: "🔒", className: "bg-muted text-muted-foreground border-border" },
-  guardado: { label: "Guardado", emoji: "💾", className: "bg-info/15 text-info border-info/40" },
-  pendiente: { label: "Pendiente", emoji: "⚪", className: "bg-transparent text-muted-foreground border-border" },
+const STYLES: Record<StatusKey, { labelKey: string; emoji: string; className: string }> = {
+  exacto: { labelKey: "status.exacto", emoji: "✅", className: "bg-primary/15 text-primary border-primary/40" },
+  ganador: { labelKey: "status.ganador", emoji: "🟢", className: "bg-success/10 text-success border-success/30" },
+  fallido: { labelKey: "status.fallido", emoji: "❌", className: "bg-destructive/15 text-destructive border-destructive/40" },
+  bloqueado: { labelKey: "status.bloqueado", emoji: "🔒", className: "bg-muted text-muted-foreground border-border" },
+  guardado: { labelKey: "status.guardado", emoji: "💾", className: "bg-info/15 text-info border-info/40" },
+  pendiente: { labelKey: "status.pendiente", emoji: "⚪", className: "bg-transparent text-muted-foreground border-border" },
 };
 
 export function getMatchStatus(match: MatchLike, pred: PredLike | null, now = Date.now()): StatusInfo {

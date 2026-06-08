@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { countdownTo, type Countdown as CD } from "@/lib/format";
 import { TOURNAMENT_START_UTC } from "@/lib/constants";
+import { useT } from "@/lib/i18n";
 
 function Unit({ value, label, accent = false }: { value: number; label: string; accent?: boolean }) {
   const text = value.toString().padStart(2, "0");
@@ -27,38 +28,39 @@ function Unit({ value, label, accent = false }: { value: number; label: string; 
 }
 
 export function Countdown() {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   const [cd, setCd] = useState<CD>(() => countdownTo(TOURNAMENT_START_UTC));
 
   useEffect(() => {
     setMounted(true);
     setCd(countdownTo(TOURNAMENT_START_UTC));
-    const t = setInterval(() => setCd(countdownTo(TOURNAMENT_START_UTC)), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setCd(countdownTo(TOURNAMENT_START_UTC)), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   // Avoid SSR/client hydration mismatch: render placeholder until mounted.
   if (!mounted) {
     return (
       <div className="flex items-end justify-center gap-3 sm:gap-5">
-        <Unit value={0} label="Días" />
-        <Unit value={0} label="Horas" />
-        <Unit value={0} label="Min" />
-        <Unit value={0} label="Seg" accent />
+        <Unit value={0} label={t("countdown.days")} />
+        <Unit value={0} label={t("countdown.hours")} />
+        <Unit value={0} label={t("countdown.min")} />
+        <Unit value={0} label={t("countdown.sec")} accent />
       </div>
     );
   }
 
   if (cd.done) {
-    return <p className="font-display text-3xl text-primary">¡El torneo ha comenzado! ⚽</p>;
+    return <p className="font-display text-3xl text-primary">{t("countdown.started")}</p>;
   }
 
   return (
     <div className="flex items-end justify-center gap-3 sm:gap-5">
-      <Unit value={cd.days} label="Días" />
-      <Unit value={cd.hours} label="Horas" />
-      <Unit value={cd.minutes} label="Min" />
-      <Unit value={cd.seconds} label="Seg" accent />
+      <Unit value={cd.days} label={t("countdown.days")} />
+      <Unit value={cd.hours} label={t("countdown.hours")} />
+      <Unit value={cd.minutes} label={t("countdown.min")} />
+      <Unit value={cd.seconds} label={t("countdown.sec")} accent />
     </div>
   );
 }
