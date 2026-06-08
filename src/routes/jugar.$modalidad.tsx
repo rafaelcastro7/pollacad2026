@@ -188,6 +188,40 @@ function ModalidadLandingPage() {
           )}
         </div>
 
+        {/* Search & filter (partido only) */}
+        {isPartido && mine.length > 0 && (
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("mod.search.placeholder")}
+                className="pl-9"
+                aria-label={t("mod.search.placeholder")}
+              />
+            </div>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="sm:w-56" aria-label={t("mod.search.allDates")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("mod.search.allDates")}</SelectItem>
+                {dateOptions.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <X className="size-4" /> {t("mod.search.clear")}
+              </Button>
+            )}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -202,9 +236,23 @@ function ModalidadLandingPage() {
             </Button>
 
           </Card>
+        ) : filtered.length === 0 ? (
+          <Card className="mt-4 border-border bg-card p-10 text-center card-shadow">
+            <div className="text-4xl">🔍</div>
+            <p className="mt-3 font-display text-xl tracking-wide">{t("mod.search.noResults")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("mod.search.noResultsDesc")}</p>
+            <Button variant="secondary" className="mt-5" onClick={clearFilters}>
+              {t("mod.search.clear")}
+            </Button>
+          </Card>
         ) : (
           <div className="mt-4">
-            <ConcursoGrid concursos={mine} inscMap={inscMap} showModalidad={false} />
+            {isPartido && hasFilters && (
+              <p className="mb-3 text-xs text-muted-foreground">
+                {t("mod.search.results", { n: filtered.length, total: mine.length })}
+              </p>
+            )}
+            <ConcursoGrid concursos={filtered} inscMap={inscMap} showModalidad={false} />
           </div>
         )}
       </section>
