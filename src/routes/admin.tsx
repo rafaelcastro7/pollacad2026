@@ -825,7 +825,7 @@ function ManageInscripcionesDialog({
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{r.participants?.nombre ?? "—"}</p>
                   <span className={`rounded-full border px-2 py-0.5 text-xs ${PAGO_META[r.estado_pago as keyof typeof PAGO_META].cls}`}>
-                    {PAGO_META[r.estado_pago as keyof typeof PAGO_META].emoji} {PAGO_META[r.estado_pago as keyof typeof PAGO_META].label}
+                    {PAGO_META[r.estado_pago as keyof typeof PAGO_META].emoji} {t(PAGO_META[r.estado_pago as keyof typeof PAGO_META].labelKey)}
                   </span>
                 </div>
                 <div className="flex gap-2">
