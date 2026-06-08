@@ -53,13 +53,13 @@ export function useLeaderboard() {
     },
   });
 
-  // Realtime: refetch leaderboard when predictions or matches change.
+  // Realtime: refetch leaderboard when match results change. Predictions are
+  // intentionally NOT subscribed to — they are not broadcast over Realtime to
+  // avoid leaking other players' picks, and points only change once a match
+  // result is entered (which updates the matches table).
   useEffect(() => {
     const channel = supabase
       .channel("leaderboard-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "predictions" }, () => {
-        query.refetch();
-      })
       .on("postgres_changes", { event: "*", schema: "public", table: "matches" }, () => {
         query.refetch();
       })
