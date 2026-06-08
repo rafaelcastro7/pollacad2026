@@ -1,72 +1,71 @@
-## Rediseño multi-modalidad — versión validada
+# Rediseño: "Elige cómo jugar" — onboarding guiado + landings por modalidad
 
-### 🔥 Roast (qué seguía flojo y ya quedó resuelto)
-1. **Muro de pago vs. pronóstico global era contradictorio.** O cobras por concurso o el pronóstico es gratis para todos. → Resuelto con "pronostica una vez, compite donde pagaste" (ver A).
-2. **"jornada" significaba dos cosas.** En la BD ya es la fecha 1/2/3 de grupos; yo lo reusé para "día". → Renombrado a `dia` (ver B).
-3. **Operación irreal.** Crear ~140 concursos a mano. → Generación automática (ver C).
-4. **Dinero ambiguo.** → Modelo explícito (ver D).
-5. **Eliminatorias sin equipos.** → Concursos condicionados que abren al definirse los cruces (ver E).
+## El problema actual
+Hoy todo se mezcla: una landing de marketing larga, un solo lobby `/concursos` con filtros sueltos, reglas globales y pronósticos en otra pantalla. El usuario no entiende *qué* está comprando ni *con qué nivel de compromiso*. Las 4 modalidades (Mundial completo, Por fase, Día de partidos, Por partido) compiten sin jerarquía.
 
-### ✅ Validación con plataformas reales (coherencia)
-Toqui, Pickster, ScorePick y Goal Pool Pro usan el mismo patrón: **un motor de pronóstico → varios "concursos/pools" con distinto alcance**, y el lema "pronostica y la tabla se calcula sola". Toqui incluso ofrece "el Mundial, una liga, o un solo partido". Nuestro diseño coincide con el estándar del mercado, así que es coherente y probado.
+## La nueva estrategia
+Un **onboarding guiado** que pregunta el nivel de compromiso y lleva a cada usuario a la **landing dedicada de su modalidad**, donde nada se mezcla: solo esa modalidad, su ejemplo, sus reglas, sus concursos y un CTA directo. Simple por defecto, con profundidad opcional (sirve a casual y a fan total por igual).
 
-### Decisiones (claras y seguras)
-**A. Pronostica una vez, compite donde pagaste.**
-El marcador de un partido se captura una sola vez por jugador. Inscribirse a un concurso desbloquea su tabla y su pozo; no obliga a recapturar. El cobro aplica a *optar al premio y aparecer en la tabla* de ese concurso, no a guardar el marcador. Gancho de marketing, no bug.
-
-**B. Modalidad `dia` ("Día de partidos").**
-Valor en BD `dia`; la UI lo llama "Día de partidos" para no chocar con `jornada`. El alcance se resuelve por fecha de kickoff en ET.
-
-**C. Generación automática.**
-El organizador no crea uno por uno. Botón "Generar concursos" por modalidad → crea todos (uno por día, uno por fase, etc.) con deadline = primer kickoff del alcance y cuota por defecto editable.
-
-**D. Dinero explícito.**
-- Pozo = `cuota × inscritos aprobados`.
-- Pagos se coordinan fuera de la app (e-Transfer/efectivo); el panel solo marca `aprobado`.
-- "Mis concursos" muestra el total adeudado (suma de cuotas pendientes).
-- Reparto con las reglas existentes (`lib/prizes.ts`) por concurso.
-
-**E. Eliminatorias condicionadas.**
-32 partidos knockout con equipos "Por definir". Sus concursos nacen `proximo` y pasan a `abierto` al definirse los cruces. Grupos funciona desde el día 1.
-
-**F. Ya aplicado.** Eliminado `dgc75@hotmail.com` (cuenta, rol y referencias en código y en la función de la BD). Admin único `admin@pollacad.com`, sin nada hardcodeado.
-
-### 🔒 Seguridad (no negociable)
-- RLS en `concursos` (lectura pública solo de `abierto/cerrado/finalizado`; escritura solo admin vía `has_role`).
-- RLS en `inscripciones` (el jugador ve/gestiona las suyas; solo admin cambia `estado_pago`).
-- `estado_pago` jamás editable por el jugador (sin escalada de pago).
-- Funciones `SECURITY DEFINER` con `search_path=public` y `get_concurso_leaderboard` que solo expone inscritos **aprobados**.
-- GRANTs explícitos por tabla. Sin políticas amplias `TO anon` salvo lectura de concursos abiertos.
-
-### 🤝 Amigabilidad (UX)
-- Lobby `/concursos` como home tras login: tarjetas con modalidad, cuota, pozo, # jugadores y cuenta regresiva; filtros por modalidad/estado.
-- Estados claros por concurso: "Inscrito", "Pago pendiente", "Abierto", "Cerrado".
-- Reuso de `/predictions` con el set del concurso; un mismo marcador ya capturado se ve precargado.
-- Vacíos/CTA cuando no hay concursos; nada de pantallas en blanco. Responsive a 393px.
-
-### Modalidades
-```
-Concurso (alcance)
- ├─ Por partido      → 1 partido
- ├─ Día de partidos  → partidos de una fecha (ET)
- ├─ Por fase         → grupos · dieciseisavos · octavos · cuartos · semis · final
- └─ Mundial completo → 104 partidos
+```text
+  HOME (/)
+  "¿Cómo quieres jugar?"
+        │
+        ▼
+  ONBOARDING GUIADO  (1 pregunta: ¿cuánto te quieres comprometer?)
+   ├─ "Solo un partido"      → /jugar/partido
+   ├─ "Un día de fútbol"     → /jugar/dia
+   ├─ "Una fase del torneo"  → /jugar/fase
+   └─ "El Mundial completo"  → /jugar/mundial
+        │
+        ▼
+  LANDING DE MODALIDAD  (todo lo de esa modalidad, sin mezclar)
+   1. Explicación simple + ejemplo visual de puntuación
+   2. Reglas y reparto de premios propios de la modalidad
+   3. Lista de concursos de esa modalidad (pozo, cuota, jugadores, deadline)
+   4. CTA directo: inscribirse / pronosticar
+        │
+        ▼
+  DETALLE DE CONCURSO  (ya existe, /concursos/$id) → pronóstico
 ```
 
-### Técnico
-- `matches`: añadir `fase` (text), poblar las 72 con `grupos`; cargar 32 knockout "Por definir".
-- `concursos`: `nombre`, `modalidad`(`partido|dia|fase|mundial`), `alcance`(jsonb), `cuota`(numeric), `estado`(`proximo|abierto|cerrado|finalizado`), `deadline`. GRANTs + RLS.
-- `inscripciones`: `concurso_id`, `participant_id`, `estado_pago`, único `(concurso_id, participant_id)`. GRANTs + RLS.
-- `predictions`: única por `(participant, match)` (sin cambios).
-- Funciones: `get_concurso_matches(id)`, `get_concurso_leaderboard(id)`; `calc_points` intacta.
-- Concurso de compatibilidad: "Mundial completo — Fase de grupos" ($20) con los aprobados ya inscritos (cero pérdida de datos actuales).
-- Frontend TanStack: `/concursos`, `/concursos/$id`, `/predictions` reusado, sección "Concursos" en `/admin`.
+## Pantallas
 
-### Fases (5)
-1. Migraciones + funciones + RLS + concurso de compatibilidad.
-2. Lobby + inscripción/pago por concurso.
-3. Pronósticos y tabla filtrados por concurso.
-4. Panel organizador: generación automática y gestión.
-5. QA seguridad + estética "Elite Sportsbook" en pantallas nuevas (criterio: build limpio, linter sin nuevos errores, responsive 393px).
+### 1. Home `/` rediseñada
+- Hero corto y claro con una sola promesa y un CTA principal: **"Empieza a jugar"** → abre el onboarding.
+- Debajo, las 4 modalidades como tarjetas grandes (icono, nombre, "ideal para…", cuota típica, nivel de compromiso) que también enlazan directo a su landing para usuarios que ya saben qué quieren.
+- Se retiran de la home: el formulario de inscripción global, la tabla de premios global y el bloque de pago. Esos contenidos pasan a vivir en su contexto correcto (landing de modalidad / detalle de concurso).
 
-¿Apruebas esta versión para construirla?
+### 2. Onboarding guiado `/jugar` (nuevo)
+- Un paso, lenguaje humano: "¿Cuánto te quieres comprometer?" con 4 opciones visuales (1 partido → todo el Mundial), cada una con tiempo estimado, cuota orientativa y nº de pronósticos.
+- Al elegir, navega a la landing de esa modalidad. Sin fricción, sin login obligatorio para mirar.
+
+### 3. Landings por modalidad `/jugar/$modalidad` (nuevo, 4 variantes de un mismo route param)
+Cada landing comparte estructura pero con contenido y acento propios:
+- **Cabecera** con icono, nombre y una frase que explica la modalidad.
+- **Cómo funciona + ejemplo**: 2–3 pasos y un ejemplo visual concreto de cómo se puntúa (acierto exacto = 3, resultado = 1, fallo = 0) aplicado a esa modalidad.
+- **Reglas y premios específicos**: deadlines, alcance (1 partido / 1 día / 1 fase / 104 partidos) y reparto de premios de esa modalidad.
+- **Concursos disponibles**: grid filtrado a esa modalidad reusando las tarjetas existentes (pozo, cuota, jugadores, cuenta regresiva, estado de inscripción).
+- **CTA directo**: "Inscribirme" / "Pronosticar" según estado de sesión y pago.
+- Estados vacíos claros cuando aún no hay concursos de esa modalidad.
+
+### 4. Ajustes de navegación
+- Navbar: "Concursos" pasa a **"Jugar"** apuntando al onboarding; se conserva el acceso a Tabla y Reglas.
+- `/concursos` se mantiene como "ver todos" (acceso avanzado), pero deja de ser la puerta principal.
+- Reglas `/reglas` se reorganiza por modalidad (acordeón) para coherencia, enlazando a cada landing.
+
+## Detalle técnico
+- **Datos**: sin cambios de esquema. Se reutilizan `useConcursosOverview`, `useMyInscripciones`, `useConcurso*` y `lib/concursos.ts` (`MODALIDAD_*`, `ESTADO_META`, `PAGO_META`).
+- **Rutas nuevas** (TanStack file-based): `src/routes/jugar.tsx` (onboarding) y `src/routes/jugar.$modalidad.tsx` (landing por modalidad). El param se valida contra `partido|dia|fase|mundial`; valor inválido → `notFound()`. Cada ruta define su `head()` propio (title/description/og) para SEO e indexación independiente.
+- **Componentes nuevos** reutilizables: `ModalidadCard` (home + onboarding), `ScoringExample` (ejemplo visual de puntuación), `ModalidadRules` (reglas/premios por modalidad), y un `ConcursoGrid` extraído de `/concursos` para reuso en las landings.
+- **i18n**: todas las cadenas nuevas en `src/lib/i18n/translations.ts` con paridad ES/EN/FR (las 4 modalidades, onboarding, ejemplos, reglas, CTAs). Se mantiene 1:1 entre idiomas.
+- **Diseño**: se respeta el sistema de tokens actual (glass-card, gold/primary/info, font-display). Cada modalidad recibe un color de acento consistente para diferenciarlas visualmente sin romper el tema. Responsive a 393px verificado.
+- **Limpieza**: la home pierde el `RegistrationForm` global; ese flujo de inscripción queda contextual al concurso (ya existe en el detalle). Sin deuda técnica ni rutas muertas: se actualizan enlaces internos y traducciones.
+
+## Fases
+1. **Componentes base** + i18n: `ModalidadCard`, `ScoringExample`, `ModalidadRules`, `ConcursoGrid` y claves de traducción ES/EN/FR.
+2. **Onboarding** `/jugar` + rediseño de la **home** como entrada limpia.
+3. **Landings por modalidad** `/jugar/$modalidad` con las 4 secciones y CTA.
+4. **Navegación y reglas**: navbar, `/reglas` por modalidad, `/concursos` como vista "todos".
+5. **QA**: build limpio, paridad i18n (script de verificación de claves), responsive 393px y revisión visual en preview.
+
+Criterio de hecho: build sin errores, las 4 landings renderizan con sus concursos y ejemplos, idiomas completos, y un usuario nuevo entiende en <10s a qué se está inscribiendo.

@@ -18,6 +18,8 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConcursosRouteImport } from './routes/concursos'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JugarIndexRouteImport } from './routes/jugar.index'
+import { Route as JugarModalidadRouteImport } from './routes/jugar.$modalidad'
 import { Route as ConcursosIdRouteImport } from './routes/concursos.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -65,6 +67,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JugarIndexRoute = JugarIndexRouteImport.update({
+  id: '/jugar/',
+  path: '/jugar/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JugarModalidadRoute = JugarModalidadRouteImport.update({
+  id: '/jugar/$modalidad',
+  path: '/jugar/$modalidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConcursosIdRoute = ConcursosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -82,6 +94,8 @@ export interface FileRoutesByFullPath {
   '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/concursos/$id': typeof ConcursosIdRoute
+  '/jugar/$modalidad': typeof JugarModalidadRoute
+  '/jugar/': typeof JugarIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +108,8 @@ export interface FileRoutesByTo {
   '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/concursos/$id': typeof ConcursosIdRoute
+  '/jugar/$modalidad': typeof JugarModalidadRoute
+  '/jugar': typeof JugarIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +123,8 @@ export interface FileRoutesById {
   '/reglas': typeof ReglasRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/concursos/$id': typeof ConcursosIdRoute
+  '/jugar/$modalidad': typeof JugarModalidadRoute
+  '/jugar/': typeof JugarIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +139,8 @@ export interface FileRouteTypes {
     | '/reglas'
     | '/sitemap.xml'
     | '/concursos/$id'
+    | '/jugar/$modalidad'
+    | '/jugar/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +153,8 @@ export interface FileRouteTypes {
     | '/reglas'
     | '/sitemap.xml'
     | '/concursos/$id'
+    | '/jugar/$modalidad'
+    | '/jugar'
   id:
     | '__root__'
     | '/'
@@ -145,6 +167,8 @@ export interface FileRouteTypes {
     | '/reglas'
     | '/sitemap.xml'
     | '/concursos/$id'
+    | '/jugar/$modalidad'
+    | '/jugar/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -157,6 +181,8 @@ export interface RootRouteChildren {
   PredictionsRoute: typeof PredictionsRoute
   ReglasRoute: typeof ReglasRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  JugarModalidadRoute: typeof JugarModalidadRoute
+  JugarIndexRoute: typeof JugarIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -224,6 +250,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jugar/': {
+      id: '/jugar/'
+      path: '/jugar'
+      fullPath: '/jugar/'
+      preLoaderRoute: typeof JugarIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jugar/$modalidad': {
+      id: '/jugar/$modalidad'
+      path: '/jugar/$modalidad'
+      fullPath: '/jugar/$modalidad'
+      preLoaderRoute: typeof JugarModalidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/concursos/$id': {
       id: '/concursos/$id'
       path: '/$id'
@@ -256,6 +296,8 @@ const rootRouteChildren: RootRouteChildren = {
   PredictionsRoute: PredictionsRoute,
   ReglasRoute: ReglasRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  JugarModalidadRoute: JugarModalidadRoute,
+  JugarIndexRoute: JugarIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

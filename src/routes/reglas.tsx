@@ -58,16 +58,18 @@ function ReglasPage() {
               {MODALIDADES.map((m) => {
                 const Icon = MODALIDAD_ICON[m];
                 return (
-                  <div
+                  <Link
                     key={m}
-                    className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4"
+                    to="/jugar/$modalidad"
+                    params={{ modalidad: m }}
+                    className="flex items-start gap-3 rounded-xl border border-border bg-muted/40 p-4 transition-colors hover:border-primary/40 hover:bg-muted/60"
                   >
                     <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
                     <div>
                       <p className="font-semibold text-foreground">{t(MODALIDAD_LABEL[m])}</p>
                       <p className="text-xs">{t(MODALIDAD_DESC[m])}</p>
                     </div>
-                  </div>
+                  </Link>
                 );
               })}
             </div>
@@ -77,8 +79,9 @@ function ReglasPage() {
               {t("reglas.mod.p2c")}
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/concursos">{t("reglas.mod.cta")}</Link>
+              <Link to="/jugar">{t("reglas.mod.cta")}</Link>
             </Button>
+
           </CardContent>
         </Card>
 
