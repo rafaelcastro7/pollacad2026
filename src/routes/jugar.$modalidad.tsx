@@ -159,9 +159,10 @@ function ModalidadLandingPage() {
             <div className="text-4xl">🗂️</div>
             <p className="mt-3 font-display text-xl tracking-wide">{t("mod.contests.empty")}</p>
             <p className="mt-1 text-sm text-muted-foreground">{t("mod.contests.emptyDesc")}</p>
-            <Button asChild variant="secondary" className="mt-5" onClick={() => router.navigate({ to: "/jugar" })}>
+            <Button asChild variant="secondary" className="mt-5">
               <Link to="/jugar">{t("mod.back")}</Link>
             </Button>
+
           </Card>
         ) : (
           <div className="mt-4">
