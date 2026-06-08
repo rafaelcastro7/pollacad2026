@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  isLocked,
-  hoursUntil,
-  dateLabelET,
-  formatET,
-  countdownTo,
-  formatCAD,
-} from "@/lib/format";
+import { isLocked, hoursUntil, dateLabelET, formatET, countdownTo, formatCAD } from "@/lib/format";
 
 const NOW = Date.parse("2026-06-11T12:00:00Z");
 
