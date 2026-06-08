@@ -183,6 +183,34 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
         ))}
       </div>
 
+      {/* MIS CONCURSOS */}
+      <Card className="mt-6 flex flex-wrap items-center justify-between gap-4 border-gold/30 bg-card p-5 card-shadow">
+        <div className="flex items-center gap-3">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-gold/15 text-gold">
+            <Ticket className="size-5" />
+          </div>
+          <div>
+            <p className="font-display text-xl tracking-wide">Mis concursos</p>
+            <p className="text-sm text-muted-foreground">
+              {misConcursos} inscripción{misConcursos === 1 ? "" : "es"}
+              {adeudado > 0 && (
+                <>
+                  {" · "}
+                  <span className="text-gold">{formatCAD(adeudado)} por pagar</span>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+        <Button asChild variant="hero" size="sm">
+          <Link to="/concursos">
+            Explorar concursos <ArrowRight className="size-4" />
+          </Link>
+        </Button>
+      </Card>
+
+
+
       {/* NEXT MATCHES */}
       <section className="mt-10">
         <div className="flex items-center justify-between">
