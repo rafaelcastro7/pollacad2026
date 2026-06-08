@@ -12,6 +12,7 @@ import {
   Trophy,
   Target,
   Lock,
+  ChevronRight,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -20,11 +21,13 @@ import {
   useConcursoLeaderboard,
   useMyInscripciones,
 } from "@/hooks/useConcursos";
+import { useMyPredictions } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { flag } from "@/lib/flags";
-import { formatCAD, formatET, dateLabelET } from "@/lib/format";
+import { formatCAD, formatET, dateLabelET, isLocked } from "@/lib/format";
+import { getMatchStatus } from "@/lib/matchStatus";
 import { calculatePrizes, MEDALS, positionLabel } from "@/lib/prizes";
 import { useT, tStatic } from "@/lib/i18n";
 import {
@@ -65,12 +68,22 @@ function ConcursoDetailPage() {
   const { data: matches = [], isLoading: ml } = useConcursoMatches(id);
   const { data: leaderboard = [] } = useConcursoLeaderboard(id);
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
+  const { data: predictions = [] } = useMyPredictions(participant?.id);
   const [joining, setJoining] = useState(false);
 
   const myInscripcion = inscripciones.find((i) => i.concurso_id === id);
   const pozo = concurso ? concurso.cuota * leaderboard.length : 0;
   const prizes = useMemo(() => calculatePrizes(leaderboard, pozo), [leaderboard, pozo]);
   const teamsDefined = matches.some((m) => m.equipo_local !== "Por definir");
+
+  const predByMatch = useMemo(() => {
+    const map = new Map<number, (typeof predictions)[number]>();
+    for (const p of predictions) map.set(p.match_id, p);
+    return map;
+  }, [predictions]);
+
+  // The player can predict once their account is approved and teams are set.
+  const canPredict = participant?.estado_pago === "aprobado" && teamsDefined;
 
   if (cl) {
     return (
@@ -274,10 +287,26 @@ function ConcursoDetailPage() {
           <ListChecks className="size-5 text-primary" />
           <h2 className="font-display text-2xl tracking-wide">{t("detail.matches.title")}</h2>
         </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {canPredict
+            ? t("detail.matches.tapToPredict")
+            : !user
+              ? t("detail.matches.loginHint")
+              : !myInscripcion
+                ? t("detail.matches.joinHint")
+                : participant?.estado_pago !== "aprobado"
+                  ? t("detail.matches.pendingHint")
+                  : t("detail.matches.tbaHint")}
+        </p>
+
         {ml ? (
           <div className="flex justify-center py-10">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
+        ) : matches.length === 0 ? (
+          <Card className="mt-4 border-border bg-card p-8 text-center text-sm text-muted-foreground card-shadow">
+            {t("detail.matches.empty")}
+          </Card>
         ) : (
           <div className="mt-4 space-y-6">
             {grouped.map((g) => (
@@ -286,17 +315,64 @@ function ConcursoDetailPage() {
                 <Card className="divide-y divide-border border-border bg-card card-shadow">
                   {g.matches.map((m) => {
                     const hasResult = m.goles_local != null && m.goles_visitante != null;
-                    return (
-                      <div key={m.id} className="flex items-center justify-between gap-3 p-3 text-sm">
-                        <span className="min-w-0 flex-1 text-right">
-                          {flag(m.equipo_local)} {m.equipo_local}
-                        </span>
-                        <span className="shrink-0 font-display text-base text-gold">
-                          {hasResult ? `${m.goles_local} — ${m.goles_visitante}` : t("common.vs")}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          {m.equipo_visitante} {flag(m.equipo_visitante)}
-                        </span>
+                    const defined = m.equipo_local !== "Por definir";
+                    const locked = isLocked(m.kickoff_time);
+                    const pred = predByMatch.get(m.id) ?? null;
+                    const hasPred = pred?.goles_local_pred != null && pred?.goles_visitante_pred != null;
+                    const status = getMatchStatus(m, pred);
+                    const interactive = canPredict && defined && !locked;
+
+                    const inner = (
+                      <>
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="min-w-0 flex-1 text-right">
+                            {flag(m.equipo_local)} {m.equipo_local}
+                          </span>
+                          <span className="shrink-0 font-display text-base text-gold">
+                            {hasResult ? `${m.goles_local} — ${m.goles_visitante}` : t("common.vs")}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            {m.equipo_visitante} {flag(m.equipo_visitante)}
+                          </span>
+                        </div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="size-3.5" /> {formatET(m.kickoff_time)}
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            {hasPred && (
+                              <span className="text-xs text-muted-foreground">
+                                {t("detail.matches.yourPick", {
+                                  l: pred!.goles_local_pred!,
+                                  v: pred!.goles_visitante_pred!,
+                                })}
+                              </span>
+                            )}
+                            <span
+                              className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${status.className}`}
+                            >
+                              {status.emoji} {t(status.labelKey)}
+                            </span>
+                            {interactive && <ChevronRight className="size-4 text-primary" />}
+                          </span>
+                        </div>
+                      </>
+                    );
+
+                    return interactive ? (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() =>
+                          router.navigate({ to: "/predictions", search: { concurso: id } })
+                        }
+                        className="block w-full p-3 text-left transition-colors hover:bg-secondary/60"
+                      >
+                        {inner}
+                      </button>
+                    ) : (
+                      <div key={m.id} className="p-3">
+                        {inner}
                       </div>
                     );
                   })}
@@ -306,6 +382,7 @@ function ConcursoDetailPage() {
           </div>
         )}
       </section>
+
     </main>
   );
 }
