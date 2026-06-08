@@ -57,7 +57,6 @@ function ModalidadLandingPage() {
   const { modalidad } = Route.useParams();
   const m = modalidad as Modalidad;
   const t = useT();
-  const router = useRouter();
   const { participant } = useAuth();
   const { data: concursos = [], isLoading } = useConcursosOverview();
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
