@@ -123,24 +123,6 @@ function ConcursoDetailPage() {
     user && participant && !myInscripcion && (concurso.estado === "abierto" || concurso.estado === "cerrado");
 
   const join = async () => {
-    if (!participant) return;
-    setJoining(true);
-    const { error } = await supabase.from("inscripciones").insert({
-      concurso_id: id,
-      participant_id: participant.id,
-      estado_pago: "pendiente",
-    });
-    setJoining(false);
-    if (error) {
-      toast.error(t("detail.join.error"));
-      return;
-    }
-    toast.success(t("detail.join.success"));
-    qc.invalidateQueries({ queryKey: ["my-inscripciones", participant.id] });
-    qc.invalidateQueries({ queryKey: ["concursos-overview"] });
-  };
-
-  const join = async () => {
     await joinContest();
   };
 
