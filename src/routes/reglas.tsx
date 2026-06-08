@@ -13,16 +13,13 @@ import {
 } from "lucide-react";
 import { ADMIN_EMAIL } from "@/lib/constants";
 import { MODALIDAD_LABEL, MODALIDAD_DESC, MODALIDAD_ICON, type Modalidad } from "@/lib/concursos";
+import { useT, tStatic } from "@/lib/i18n";
 
 export const Route = createFileRoute("/reglas")({
   head: () => ({
     meta: [
-      { title: "Reglas del Juego — Polla Mundial FIFA 2026" },
-      {
-        name: "description",
-        content:
-          "Reglas de la Polla Mundial FIFA 2026: modalidades de concurso, inscripción, sistema de puntos, premios y desempates.",
-      },
+      { title: tStatic("reglas.meta.title") },
+      { name: "description", content: tStatic("reglas.meta.desc") },
     ],
   }),
   component: ReglasPage,
@@ -31,16 +28,15 @@ export const Route = createFileRoute("/reglas")({
 const MODALIDADES: Modalidad[] = ["partido", "dia", "fase", "mundial"];
 
 function ReglasPage() {
+  const t = useT();
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
       <div className="text-center">
         <h1 className="font-display text-4xl tracking-wide sm:text-5xl">
           <span aria-hidden>📋 </span>
-          <span className="gold-gradient-text">Reglas del Juego</span>
+          <span className="gold-gradient-text">{t("reglas.title")}</span>
         </h1>
-        <p className="mt-3 text-muted-foreground">
-          Todo lo que necesitas saber para participar en la Polla Mundial 2026
-        </p>
+        <p className="mt-3 text-muted-foreground">{t("reglas.subtitle")}</p>
       </div>
 
       <div className="mt-10 space-y-8">
@@ -50,16 +46,13 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Layers className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">
-              Modalidades de Concurso
-            </CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.mod.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              No hay una sola polla: hay{" "}
-              <span className="font-semibold text-foreground">varios concursos</span> y eliges en
-              cuáles compites. Pronosticas el marcador de cada partido una sola vez y ese marcador
-              cuenta en todos los concursos a los que estés inscrito que incluyan ese partido.
+              {t("reglas.mod.p1a")}{" "}
+              <span className="font-semibold text-foreground">{t("reglas.mod.p1b")}</span>{" "}
+              {t("reglas.mod.p1c")}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               {MODALIDADES.map((m) => {
@@ -71,22 +64,20 @@ function ReglasPage() {
                   >
                     <Icon className="mt-0.5 size-5 shrink-0 text-primary" />
                     <div>
-                      <p className="font-semibold text-foreground">{MODALIDAD_LABEL[m]}</p>
-                      <p className="text-xs">{MODALIDAD_DESC[m]}</p>
+                      <p className="font-semibold text-foreground">{t(MODALIDAD_LABEL[m])}</p>
+                      <p className="text-xs">{t(MODALIDAD_DESC[m])}</p>
                     </div>
                   </div>
                 );
               })}
             </div>
             <p className="text-xs">
-              Cada concurso tiene su{" "}
-              <span className="font-semibold text-foreground">
-                propia cuota, su propio pozo, su propia tabla y su propia fecha de cierre
-              </span>
-              . Las eliminatorias se abren cuando se conocen los equipos clasificados.
+              {t("reglas.mod.p2a")}{" "}
+              <span className="font-semibold text-foreground">{t("reglas.mod.p2b")}</span>
+              {t("reglas.mod.p2c")}
             </p>
             <Button asChild variant="secondary" size="sm">
-              <Link to="/concursos">Ver concursos disponibles</Link>
+              <Link to="/concursos">{t("reglas.mod.cta")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -97,38 +88,34 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Users className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">Inscripción y Pago</CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.ins.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                Regístrate con un <span className="font-semibold text-foreground">alias único</span>{" "}
-                y un <span className="font-semibold text-foreground">PIN de 4 dígitos</span>.
+                {t("reglas.ins.li1a")} <span className="font-semibold text-foreground">{t("reglas.ins.li1b")}</span>{" "}
+                {t("reglas.ins.li1c")} <span className="font-semibold text-foreground">{t("reglas.ins.li1d")}</span>.
               </li>
               <li>
-                Inscríbete a los concursos que quieras desde la página de{" "}
+                {t("reglas.ins.li2a")}{" "}
                 <Link
                   to="/concursos"
                   className="font-semibold text-primary underline-offset-2 hover:underline"
                 >
-                  Concursos
+                  {t("reglas.ins.li2b")}
                 </Link>
-                . La cuota se muestra en cada concurso (puede variar según la modalidad).
+                {t("reglas.ins.li2c")}
               </li>
               <li>
-                Paga la cuota de cada concurso por e-Transfer a{" "}
-                <span className="font-semibold text-foreground">{ADMIN_EMAIL}</span> o en efectivo
-                al organizador. Incluye tu alias en el mensaje para identificar tu pago.
+                {t("reglas.ins.li3a")}{" "}
+                <span className="font-semibold text-foreground">{ADMIN_EMAIL}</span> {t("reglas.ins.li3c")}
               </li>
               <li>
-                El organizador marca tu pago como{" "}
-                <span className="font-semibold text-success">aprobado</span>. Solo entonces apareces
-                en la tabla de ese concurso y optas a su premio.
+                {t("reglas.ins.li4a")}{" "}
+                <span className="font-semibold text-success">{t("reglas.ins.li4b")}</span>
+                {t("reglas.ins.li4c")}
               </li>
-              <li>
-                Cada concurso cierra su inscripción al iniciar el primer partido de su alcance (su
-                fecha de cierre se indica en el concurso).
-              </li>
+              <li>{t("reglas.ins.li5")}</li>
             </ul>
           </CardContent>
         </Card>
@@ -139,42 +126,35 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Scroll className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">Pronósticos</CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.pro.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                Pronosticas el{" "}
-                <span className="font-semibold text-foreground">marcador exacto</span> de cada
-                partido ingresando el número de goles de cada equipo.
+                {t("reglas.pro.li1a")}{" "}
+                <span className="font-semibold text-foreground">{t("reglas.pro.li1b")}</span>{" "}
+                {t("reglas.pro.li1c")}
               </li>
               <li>
-                El marcador se captura{" "}
-                <span className="font-semibold text-foreground">una sola vez por partido</span> y
-                vale para todos los concursos que incluyan ese partido.
+                {t("reglas.pro.li2a")}{" "}
+                <span className="font-semibold text-foreground">{t("reglas.pro.li2b")}</span>{" "}
+                {t("reglas.pro.li2c")}
               </li>
               <li>
-                <span className="font-semibold text-destructive">
-                  Una vez que guardas un marcador, no se puede editar.
-                </span>{" "}
-                Revísalo bien antes de pulsar Guardar.
+                <span className="font-semibold text-destructive">{t("reglas.pro.li3")}</span>{" "}
+                {t("reglas.pro.li3b")}
               </li>
               <li>
-                Si no lo guardaste antes, el pronóstico se{" "}
-                <span className="font-semibold text-foreground">
-                  bloquea automáticamente al iniciar el partido
-                </span>{" "}
-                (kickoff) y ya no podrás ingresarlo.
+                {t("reglas.pro.li4a")}{" "}
+                <span className="font-semibold text-foreground">{t("reglas.pro.li4b")}</span>{" "}
+                {t("reglas.pro.li4c")}
               </li>
               <li>
-                Solo los participantes con pago{" "}
-                <span className="font-semibold text-success">aprobado</span> pueden guardar
-                pronósticos.
+                {t("reglas.pro.li5a")}{" "}
+                <span className="font-semibold text-success">{t("reglas.pro.li5b")}</span>{" "}
+                {t("reglas.pro.li5c")}
               </li>
-              <li>
-                Los partidos de eliminatorias con equipos "Por definir" se podrán pronosticar cuando
-                se conozcan los clasificados.
-              </li>
+              <li>{t("reglas.pro.li6")}</li>
             </ul>
           </CardContent>
         </Card>
@@ -185,37 +165,34 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <CheckCircle className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">Sistema de Puntos</CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.pts.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
-            <p>El mismo sistema de puntos aplica en todos los concursos:</p>
+            <p>{t("reglas.pts.intro")}</p>
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 text-center">
                 <div className="font-display text-4xl text-primary">3</div>
-                <p className="mt-1 font-semibold text-foreground">Marcador exacto</p>
-                <p className="text-xs">
-                  Acertaste el resultado exacto (ej: pronosticaste 2-1 y salió 2-1)
-                </p>
+                <p className="mt-1 font-semibold text-foreground">{t("reglas.pts.exact")}</p>
+                <p className="text-xs">{t("reglas.pts.exactDesc")}</p>
               </div>
               <div className="rounded-xl border border-success/30 bg-success/5 p-4 text-center">
                 <div className="font-display text-4xl text-success">1</div>
-                <p className="mt-1 font-semibold text-foreground">Resultado correcto</p>
-                <p className="text-xs">
-                  Acertaste quién ganó o el empate, pero no el marcador exacto
-                </p>
+                <p className="mt-1 font-semibold text-foreground">{t("reglas.pts.result")}</p>
+                <p className="text-xs">{t("reglas.pts.resultDesc")}</p>
               </div>
               <div className="rounded-xl border border-border bg-muted/40 p-4 text-center">
                 <div className="font-display text-4xl text-muted-foreground">0</div>
-                <p className="mt-1 font-semibold text-foreground">Fallo</p>
-                <p className="text-xs">No acertaste ni el resultado ni el marcador</p>
+                <p className="mt-1 font-semibold text-foreground">{t("reglas.pts.miss")}</p>
+                <p className="text-xs">{t("reglas.pts.missDesc")}</p>
               </div>
             </div>
             <p>
-              Ejemplo: Si pronosticaste Brasil 2-1 Croacia y el resultado fue Brasil 2-1 Croacia,
-              obtienes <span className="font-semibold text-primary">3 puntos</span>. Si el resultado
-              fue Brasil 1-0 Croacia, obtienes{" "}
-              <span className="font-semibold text-success">1 punto</span>. Si ganó Croacia o empató,
-              obtienes <span className="font-semibold text-muted-foreground">0 puntos</span>.
+              {t("reglas.pts.example1")}{" "}
+              <span className="font-semibold text-primary">{t("reglas.pts.example2")}</span>
+              {t("reglas.pts.example3")}{" "}
+              <span className="font-semibold text-success">{t("reglas.pts.example4")}</span>
+              {t("reglas.pts.example5")}{" "}
+              <span className="font-semibold text-muted-foreground">{t("reglas.pts.example6")}</span>.
             </p>
           </CardContent>
         </Card>
@@ -226,52 +203,45 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-gold/15 text-gold">
               <Trophy className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">
-              Premios y Distribución del Pozo
-            </CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.prizes.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p>
-              El pozo de cada concurso se calcula como{" "}
-              <span className="font-semibold text-foreground">
-                cuota del concurso × número de participantes aprobados
-              </span>{" "}
-              en ese concurso, y se reparte así:
+              {t("reglas.prizes.intro1")}{" "}
+              <span className="font-semibold text-foreground">{t("reglas.prizes.intro2")}</span>{" "}
+              {t("reglas.prizes.intro3")}
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
                 <span className="text-2xl">🥇</span>
                 <div>
-                  <p className="font-semibold text-foreground">1° lugar</p>
+                  <p className="font-semibold text-foreground">{t("reglas.prizes.p1")}</p>
                   <p className="text-gold font-display text-xl">60%</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
                 <span className="text-2xl">🥈</span>
                 <div>
-                  <p className="font-semibold text-foreground">2° lugar</p>
+                  <p className="font-semibold text-foreground">{t("reglas.prizes.p2")}</p>
                   <p className="text-gold font-display text-xl">25%</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
                 <span className="text-2xl">🥉</span>
                 <div>
-                  <p className="font-semibold text-foreground">3° lugar</p>
+                  <p className="font-semibold text-foreground">{t("reglas.prizes.p3")}</p>
                   <p className="text-gold font-display text-xl">10%</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-4">
                 <span className="text-2xl">4️⃣</span>
                 <div>
-                  <p className="font-semibold text-foreground">4° lugar</p>
+                  <p className="font-semibold text-foreground">{t("reglas.prizes.p4")}</p>
                   <p className="text-gold font-display text-xl">5%</p>
                 </div>
               </div>
             </div>
-            <p className="text-xs">
-              En caso de empates en puntos, el pozo se redistribuye según las reglas de desempate
-              descritas abajo.
-            </p>
+            <p className="text-xs">{t("reglas.prizes.tie")}</p>
           </CardContent>
         </Card>
 
@@ -281,34 +251,23 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Shield className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">Desempates</CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.tie.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p>
-              En caso de empate en puntos entre participantes, se aplican estos criterios en orden:
-            </p>
+            <p>{t("reglas.tie.intro")}</p>
             <ol className="ml-4 list-decimal space-y-2">
               <li>
-                <span className="font-semibold text-foreground">
-                  Mayor cantidad de marcadores exactos
-                </span>{" "}
-                (3 puntos).
+                <span className="font-semibold text-foreground">{t("reglas.tie.li1")}</span>{" "}
+                {t("reglas.tie.li1b")}
               </li>
               <li>
-                Si persiste el empate, los participantes empatados{" "}
-                <span className="font-semibold text-foreground">
-                  comparten el premio en partes iguales
-                </span>
-                .
+                {t("reglas.tie.li2a")}{" "}
+                <span className="font-semibold text-foreground">{t("reglas.tie.li2b")}</span>.
               </li>
             </ol>
             <div className="rounded-xl border border-info/30 bg-info/5 p-4 text-xs">
-              <p className="font-semibold text-info">Ejemplo de redistribución por empate:</p>
-              <p className="mt-1">
-                Si dos personas empatan en 1° lugar (mismos puntos y mismos exactos), se reparten el
-                60% + 25% = 85% entre ambas (42.5% cada una). El 3° lugar recibe el 10% y el 4° el
-                5%.
-              </p>
+              <p className="font-semibold text-info">{t("reglas.tie.exTitle")}</p>
+              <p className="mt-1">{t("reglas.tie.exBody")}</p>
             </div>
           </CardContent>
         </Card>
@@ -319,25 +278,14 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <AlertTriangle className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">Reglas Generales</CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.gen.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
-              <li>
-                Puedes inscribirte en tantos concursos como quieras; cada uno se paga y se premia
-                por separado.
-              </li>
-              <li>
-                El marcador de un partido es el mismo en todos tus concursos: lo capturas una vez.
-              </li>
-              <li>
-                El organizador tiene la facultad de resolver cualquier situación no prevista en
-                estas reglas, y sus decisiones son finales e inapelables.
-              </li>
-              <li>
-                Al inscribirte, aceptas cumplir con todas las reglas y el pago de la cuota del
-                concurso.
-              </li>
+              <li>{t("reglas.gen.li1")}</li>
+              <li>{t("reglas.gen.li2")}</li>
+              <li>{t("reglas.gen.li3")}</li>
+              <li>{t("reglas.gen.li4")}</li>
             </ul>
           </CardContent>
         </Card>
@@ -348,29 +296,21 @@ function ReglasPage() {
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <Clock className="size-5" />
             </div>
-            <CardTitle className="font-display text-xl tracking-wide">
-              Calendario Importante
-            </CardTitle>
+            <CardTitle className="font-display text-xl tracking-wide">{t("reglas.cal.title")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <ul className="ml-4 list-disc space-y-2">
               <li>
-                <span className="font-semibold text-foreground">11 de junio de 2026:</span> Inicio
-                del Mundial FIFA 2026 (primer partido de la fase de grupos).
+                <span className="font-semibold text-foreground">{t("reglas.cal.li1a")}</span> {t("reglas.cal.li1b")}
               </li>
               <li>
-                <span className="font-semibold text-foreground">Cierre de cada concurso:</span> al
-                iniciar el primer partido de su alcance. Después de esa hora no se admiten
-                inscripciones para ese concurso.
+                <span className="font-semibold text-foreground">{t("reglas.cal.li2a")}</span> {t("reglas.cal.li2b")}
               </li>
               <li>
-                <span className="font-semibold text-foreground">Durante el torneo:</span> cada
-                marcador se puede guardar hasta el kickoff de su partido; una vez guardado no se
-                edita.
+                <span className="font-semibold text-foreground">{t("reglas.cal.li3a")}</span> {t("reglas.cal.li3b")}
               </li>
               <li>
-                <span className="font-semibold text-foreground">Al cerrar un concurso:</span> se
-                calculan los puntos y se determina su tabla y la distribución del pozo.
+                <span className="font-semibold text-foreground">{t("reglas.cal.li4a")}</span> {t("reglas.cal.li4b")}
               </li>
             </ul>
           </CardContent>
@@ -379,10 +319,10 @@ function ReglasPage() {
 
       <div className="mt-10 flex flex-wrap justify-center gap-3">
         <Button asChild variant="hero" size="lg">
-          <Link to="/concursos">Ver concursos</Link>
+          <Link to="/concursos">{t("reglas.footer.viewContests")}</Link>
         </Button>
         <Button asChild variant="secondary" size="lg">
-          <Link to="/">Volver al inicio</Link>
+          <Link to="/">{t("reglas.footer.home")}</Link>
         </Button>
       </div>
     </main>
