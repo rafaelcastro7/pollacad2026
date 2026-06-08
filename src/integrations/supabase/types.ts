@@ -50,6 +50,27 @@ export type Database = {
         }
         Relationships: []
       }
+      demo_seed: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          ref_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          ref_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          ref_id?: string
+        }
+        Relationships: []
+      }
       inscripciones: {
         Row: {
           concurso_id: string
@@ -311,6 +332,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reset_demo_data: { Args: never; Returns: Json }
+      seed_demo_data: {
+        Args: {
+          _include_partidos?: boolean
+          _players?: number
+          _result_pct?: number
+        }
+        Returns: Json
       }
       selftest_concursos: {
         Args: never

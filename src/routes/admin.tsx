@@ -2,7 +2,19 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Users, ClipboardList, Wallet, Eye, Trophy, Sparkles, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Users,
+  ClipboardList,
+  Wallet,
+  Eye,
+  Trophy,
+  Sparkles,
+  Trash2,
+  FlaskConical,
+  Terminal,
+  RotateCcw,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMatches } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +22,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 
 import {
   AlertDialog,
@@ -34,21 +48,22 @@ import { calculatePrizes, MEDALS } from "@/lib/prizes";
 import { ENTRY_FEE, TOTAL_MATCHES } from "@/lib/constants";
 import { useConcursosOverview } from "@/hooks/useConcursos";
 import { MODALIDAD_LABEL, ESTADO_META, PAGO_META, type EstadoConcurso, type Modalidad } from "@/lib/concursos";
-import { useT, tStatic } from "@/lib/i18n";
+import { useT, tStatic, type TFunc } from "@/lib/i18n";
 
 type Participant = Tables<"participants">;
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — Polla Mundial 2026" }] }),
+  head: () => ({ meta: [{ title: tStatic("admin.meta.title") }] }),
   component: AdminPage,
 });
 
-type Section = "inscripciones" | "resultados" | "resumen" | "concursos";
+type Section = "inscripciones" | "resultados" | "resumen" | "concursos" | "demo";
 
 function AdminPage() {
+  const t = useT();
   const router = useRouter();
   const { user, isAdmin, loading } = useAuth();
-  const [section, setSection] = useState<Section>("inscripciones");
+  const [section, setSection] = useState<Section>("concursos");
 
   if (loading) {
     return (
@@ -64,9 +79,9 @@ function AdminPage() {
         <Card className="w-full border-destructive/40 bg-destructive/5 p-8 text-center card-shadow">
           <div className="text-4xl">🚫</div>
           <h1 className="mt-3 font-display text-3xl tracking-wide">403</h1>
-          <p className="mt-2 text-sm text-muted-foreground">No tienes acceso a esta sección.</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("admin.403")}</p>
           <Button className="mt-6" onClick={() => router.navigate({ to: "/" })}>
-            Volver al inicio
+            {t("admin.backHome")}
           </Button>
         </Card>
       </main>
@@ -74,15 +89,16 @@ function AdminPage() {
   }
 
   const nav: { key: Section; label: string; icon: typeof Users }[] = [
-    { key: "concursos", label: "Concursos", icon: Trophy },
-    { key: "inscripciones", label: "Inscripciones", icon: Users },
-    { key: "resultados", label: "Resultados", icon: ClipboardList },
-    { key: "resumen", label: "Resumen", icon: Wallet },
+    { key: "concursos", label: t("admin.nav.concursos"), icon: Trophy },
+    { key: "inscripciones", label: t("admin.nav.inscripciones"), icon: Users },
+    { key: "resultados", label: t("admin.nav.resultados"), icon: ClipboardList },
+    { key: "resumen", label: t("admin.nav.resumen"), icon: Wallet },
+    { key: "demo", label: t("admin.nav.demo"), icon: FlaskConical },
   ];
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="font-display text-4xl tracking-wide">Panel de administración</h1>
+      <h1 className="font-display text-4xl tracking-wide">{t("admin.title")}</h1>
       <div className="mt-6 flex flex-col gap-6 lg:flex-row">
         <aside className="lg:w-56 lg:shrink-0">
           <div className="flex gap-2 overflow-x-auto lg:flex-col">
@@ -106,6 +122,7 @@ function AdminPage() {
           {section === "inscripciones" && <Inscripciones />}
           {section === "resultados" && <Resultados />}
           {section === "resumen" && <Resumen onGoToInscripciones={() => setSection("inscripciones")} />}
+          {section === "demo" && <DemoConsole />}
         </div>
       </div>
     </main>
@@ -136,10 +153,11 @@ const ESTADO_BADGE: Record<string, string> = {
 const ESTADO_EMOJI: Record<string, string> = { pendiente: "🟡", aprobado: "✅", rechazado: "❌" };
 
 function Inscripciones() {
+  const t = useT();
   const qc = useQueryClient();
   const { data: parts = [], isLoading } = useParticipants();
   const [filter, setFilter] = useState<"todos" | "pendiente" | "aprobado" | "rechazado">("todos");
-  
+
   const [confirm, setConfirm] = useState<{ p: Participant; estado: "aprobado" | "rechazado" } | null>(null);
   const [detail, setDetail] = useState<Participant | null>(null);
 
@@ -151,8 +169,6 @@ function Inscripciones() {
 
   const filtered = parts.filter((p) => filter === "todos" || p.estado_pago === filter);
 
-
-
   const apply = async () => {
     if (!confirm) return;
     const { error } = await supabase
@@ -160,9 +176,9 @@ function Inscripciones() {
       .update({ estado_pago: confirm.estado })
       .eq("id", confirm.p.id);
     if (error) {
-      toast.error("Error al actualizar.");
+      toast.error(t("admin.ins.updateError"));
     } else {
-      toast.success(confirm.estado === "aprobado" ? "Participante aprobado ✅" : "Participante rechazado");
+      toast.success(confirm.estado === "aprobado" ? t("admin.ins.approvedToast") : t("admin.ins.rejectedToast"));
       qc.invalidateQueries({ queryKey: ["admin-participants"] });
       qc.invalidateQueries({ queryKey: ["leaderboard"] });
     }
@@ -170,34 +186,34 @@ function Inscripciones() {
   };
 
   const tabs: { key: typeof filter; label: string }[] = [
-    { key: "todos", label: "Todos" },
-    { key: "pendiente", label: "Pendientes" },
-    { key: "aprobado", label: "Aprobados" },
-    { key: "rechazado", label: "Rechazados" },
+    { key: "todos", label: t("admin.ins.tab.todos") },
+    { key: "pendiente", label: t("admin.ins.tab.pendientes") },
+    { key: "aprobado", label: t("admin.ins.tab.aprobados") },
+    { key: "rechazado", label: t("admin.ins.tab.rechazados") },
   ];
 
   return (
     <div>
       <Card className="mb-4 border-border bg-card p-4 text-sm card-shadow">
-        <span className="text-gold">{counts.pendiente} pendientes</span>
+        <span className="text-gold">{t("admin.ins.pending", { n: counts.pendiente })}</span>
         <span className="mx-2 text-muted-foreground">·</span>
-        <span className="text-primary">{counts.aprobado} aprobados</span>
+        <span className="text-primary">{t("admin.ins.approved", { n: counts.aprobado })}</span>
         <span className="mx-2 text-muted-foreground">·</span>
-        <span className="text-foreground">{formatCAD(recaudado)} recaudado (aprox)</span>
+        <span className="text-foreground">{t("admin.ins.collected", { amount: formatCAD(recaudado) })}</span>
       </Card>
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {tabs.map((t) => (
+        {tabs.map((tab) => (
           <button
-            key={t.key}
-            onClick={() => setFilter(t.key)}
+            key={tab.key}
+            onClick={() => setFilter(tab.key)}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-              filter === t.key
+              filter === tab.key
                 ? "border-primary bg-primary/15 text-primary"
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
-            {t.label}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -211,9 +227,9 @@ function Inscripciones() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="p-3">Alias</th>
-                <th className="p-3">Estado</th>
-                <th className="p-3 text-right">Acciones</th>
+                <th className="p-3">{t("admin.ins.col.alias")}</th>
+                <th className="p-3">{t("admin.ins.col.estado")}</th>
+                <th className="p-3 text-right">{t("admin.ins.col.acciones")}</th>
               </tr>
             </thead>
             <tbody>
@@ -222,7 +238,7 @@ function Inscripciones() {
                   <td className="p-3 font-medium">{p.nombre}</td>
                   <td className="p-3">
                     <span className={`rounded-full border px-2 py-0.5 text-xs ${ESTADO_BADGE[p.estado_pago]}`}>
-                      {ESTADO_EMOJI[p.estado_pago]} {p.estado_pago}
+                      {ESTADO_EMOJI[p.estado_pago]} {t(`admin.ins.estado.${p.estado_pago}`)}
                     </span>
                   </td>
                   <td className="p-3">
@@ -253,7 +269,7 @@ function Inscripciones() {
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={3} className="p-6 text-center text-muted-foreground">
-                    Sin inscripciones.
+                    {t("admin.ins.empty")}
                   </td>
                 </tr>
               )}
@@ -262,35 +278,33 @@ function Inscripciones() {
         </Card>
       )}
 
-
-
       {/* Confirm dialog */}
       <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
         <AlertDialogContent className="border-border bg-card">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirm?.estado === "aprobado" ? "Aprobar pago" : "Rechazar pago"}
+              {confirm?.estado === "aprobado" ? t("admin.confirm.approveTitle") : t("admin.confirm.rejectTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirm?.estado === "aprobado"
-                ? `${confirm?.p.nombre} podrá pronosticar los 72 partidos.`
-                : `${confirm?.p.nombre} no podrá acceder a los pronósticos.`}
+                ? t("admin.confirm.approveBody", { name: confirm?.p.nombre ?? "" })
+                : t("admin.confirm.rejectBody", { name: confirm?.p.nombre ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={apply}>Confirmar</AlertDialogAction>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={apply}>{t("common.confirm")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Drill-down: detalle del participante */}
+      {/* Drill-down: participant detail */}
       <ParticipantDetailDialog participant={detail} onClose={() => setDetail(null)} />
     </div>
   );
 }
 
-/* ---------------- Drill-down de participante ---------------- */
+/* ---------------- Participant drill-down ---------------- */
 
 type DetailRow = {
   match_id: number;
@@ -320,6 +334,7 @@ function ParticipantDetailDialog({
   participant: Participant | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["participant-detail", participant?.id],
     enabled: !!participant,
@@ -348,13 +363,13 @@ function ParticipantDetailDialog({
             {participant?.nombre}
           </DialogTitle>
           <DialogDescription>
-            {predichos} pronósticos · {totalPuntos} pts · {exactos} exactos
+            {t("admin.detail.summary", { pred: predichos, pts: totalPuntos, exact: exactos })}
           </DialogDescription>
         </DialogHeader>
 
         {notApproved ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Este participante no está aprobado, por lo que no tiene pronósticos disponibles.
+            {t("admin.detail.notApproved")}
           </p>
         ) : isLoading ? (
           <div className="flex justify-center py-12">
@@ -365,10 +380,10 @@ function ParticipantDetailDialog({
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="p-2">#</th>
-                <th className="p-2">Partido</th>
-                <th className="p-2 text-center">Pronóstico</th>
-                <th className="p-2 text-center">Resultado</th>
-                <th className="p-2 text-right">Pts</th>
+                <th className="p-2">{t("admin.detail.col.partido")}</th>
+                <th className="p-2 text-center">{t("admin.detail.col.pronostico")}</th>
+                <th className="p-2 text-center">{t("admin.detail.col.resultado")}</th>
+                <th className="p-2 text-right">{t("common.pts")}</th>
               </tr>
             </thead>
             <tbody>
@@ -379,7 +394,7 @@ function ParticipantDetailDialog({
                   <tr key={r.match_id} className="border-b border-border/60">
                     <td className="p-2 text-muted-foreground">{r.numero_partido}</td>
                     <td className="p-2">
-                      {flag(r.equipo_local)} {r.equipo_local} vs {r.equipo_visitante} {flag(r.equipo_visitante)}
+                      {flag(r.equipo_local)} {r.equipo_local} {t("common.vs")} {r.equipo_visitante} {flag(r.equipo_visitante)}
                     </td>
                     <td className="p-2 text-center font-medium">
                       {hasPred ? `${r.goles_local_pred} — ${r.goles_visitante_pred}` : "—"}
@@ -404,7 +419,7 @@ function ParticipantDetailDialog({
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="p-6 text-center text-muted-foreground">
-                    Sin partidos.
+                    {t("admin.detail.empty")}
                   </td>
                 </tr>
               )}
@@ -419,6 +434,7 @@ function ParticipantDetailDialog({
 /* ---------------- Section B: Resultados ---------------- */
 
 function Resultados() {
+  const t = useT();
   const qc = useQueryClient();
   const { data: matches = [], isLoading } = useMatches();
   const [jornada, setJornada] = useState(1);
@@ -446,23 +462,28 @@ function Resultados() {
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
-            Jornada {j}
+            {t("pred.jornada", { n: j })}
           </button>
         ))}
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {list.map((m) => (
-          <ResultCard key={m.id} match={m} onSaved={() => {
-            qc.invalidateQueries({ queryKey: ["matches"] });
-            qc.invalidateQueries({ queryKey: ["leaderboard"] });
-          }} />
+          <ResultCard
+            key={m.id}
+            match={m}
+            t={t}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: ["matches"] });
+              qc.invalidateQueries({ queryKey: ["leaderboard"] });
+            }}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () => void }) {
+function ResultCard({ match, onSaved, t }: { match: Tables<"matches">; onSaved: () => void; t: TFunc }) {
   const started = isLocked(match.kickoff_time);
   const [gl, setGl] = useState(match.goles_local?.toString() ?? "");
   const [gv, setGv] = useState(match.goles_visitante?.toString() ?? "");
@@ -472,13 +493,13 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
 
   const save = async () => {
     if (!started) {
-      toast.warning("⚠️ Este partido aún no ha comenzado.");
+      toast.warning(t("admin.res.notStartedWarn"));
       return;
     }
     const l = Number(gl);
     const v = Number(gv);
     if (gl === "" || gv === "" || Number.isNaN(l) || Number.isNaN(v)) {
-      toast.error("Ingresa ambos marcadores.");
+      toast.error(t("admin.res.bothScores"));
       return;
     }
     setSaving(true);
@@ -487,7 +508,7 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
       .update({ goles_local: l, goles_visitante: v })
       .eq("id", match.id);
     if (error) {
-      toast.error("Error al guardar.");
+      toast.error(t("admin.res.saveError"));
       setSaving(false);
       return;
     }
@@ -496,7 +517,7 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
       .select("*", { count: "exact", head: true })
       .eq("match_id", match.id)
       .not("goles_local_pred", "is", null);
-    toast.success(`✅ Resultado guardado — Puntos calculados para ${count ?? 0} participantes`);
+    toast.success(t("admin.res.savedToast", { n: count ?? 0 }));
     setEditing(false);
     setSaving(false);
     onSaved();
@@ -505,8 +526,8 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
   return (
     <Card className="border-border bg-card p-4 card-shadow">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Partido #{match.numero_partido} · Grupo {match.grupo}</span>
-        {!started && <span className="text-gold">No iniciado</span>}
+        <span>{t("admin.res.matchInfo", { n: match.numero_partido, g: match.grupo })}</span>
+        {!started && <span className="text-gold">{t("admin.res.notStarted")}</span>}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">📍 {match.estadio} · 🕐 {formatET(match.kickoff_time)}</p>
       <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
@@ -528,11 +549,11 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
       </div>
       <div className="mt-3 flex justify-center">
         {hasResult && !editing ? (
-          <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Editar resultado</Button>
+          <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>{t("admin.res.edit")}</Button>
         ) : (
           <Button variant="hero" size="sm" disabled={!started || saving} onClick={save}>
             {saving ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-            Guardar resultado
+            {t("admin.res.save")}
           </Button>
         )}
       </div>
@@ -543,6 +564,7 @@ function ResultCard({ match, onSaved }: { match: Tables<"matches">; onSaved: () 
 /* ---------------- Section C: Resumen ---------------- */
 
 function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
+  const t = useT();
   const { data: parts = [] } = useParticipants();
   const { data: matches = [] } = useMatches();
   const { data: leaderboard = [] } = useQuery({
@@ -568,11 +590,11 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
   const prizes = useMemo(() => calculatePrizes(leaderboard, pot), [leaderboard, pot]);
 
   const cards = [
-    { label: "Participantes aprobados", value: aprobados },
-    { label: "Pozo total", value: formatCAD(pot), gold: true },
-    { label: "Pendientes de aprobar", value: pendientes, action: true },
-    { label: "Partidos jugados", value: `${jugados} / ${TOTAL_MATCHES}` },
-    { label: "Partidos pendientes", value: TOTAL_MATCHES - jugados },
+    { label: t("admin.sum.approved"), value: aprobados },
+    { label: t("admin.sum.pot"), value: formatCAD(pot), gold: true },
+    { label: t("admin.sum.pendingApprove"), value: pendientes, action: true },
+    { label: t("admin.sum.played"), value: `${jugados} / ${TOTAL_MATCHES}` },
+    { label: t("admin.sum.remaining"), value: TOTAL_MATCHES - jugados },
   ];
 
   return (
@@ -584,7 +606,7 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
             <p className={`mt-2 font-display text-3xl ${c.gold ? "text-gold" : "text-foreground"}`}>{c.value}</p>
             {c.action && pendientes > 0 && (
               <Button variant="ghost" size="sm" className="mt-1 px-0" onClick={onGoToInscripciones}>
-                Revisar →
+                {t("admin.sum.review")}
               </Button>
             )}
           </Card>
@@ -592,9 +614,9 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
       </div>
 
       <Card className="border-gold/30 bg-card p-5 card-shadow">
-        <h2 className="font-display text-xl tracking-wide">Distribución de premios proyectada</h2>
+        <h2 className="font-display text-xl tracking-wide">{t("admin.sum.prizeTitle")}</h2>
         {leaderboard.length === 0 ? (
-          <p className="mt-3 text-sm text-muted-foreground">Aún no hay participantes aprobados.</p>
+          <p className="mt-3 text-sm text-muted-foreground">{t("admin.sum.noApproved")}</p>
         ) : (
           <div className="mt-4 divide-y divide-border">
             {leaderboard
@@ -634,17 +656,17 @@ function ConcursosAdmin() {
     });
     setGenerating(false);
     if (error) {
-      toast.error("No se pudieron generar los concursos.");
+      toast.error(t("admin.con.genError"));
       return;
     }
-    toast.success(`${data ?? 0} concurso(s) creados.`);
+    toast.success(t("admin.con.genToast", { n: data ?? 0 }));
     refresh();
   };
 
   const updateField = async (id: string, fields: { estado?: string; cuota?: number }, msg?: string) => {
     const { error } = await supabase.from("concursos").update(fields).eq("id", id);
     if (error) {
-      toast.error("Error al actualizar.");
+      toast.error(t("admin.con.updateError"));
       return;
     }
     if (msg) toast.success(msg);
@@ -654,10 +676,10 @@ function ConcursosAdmin() {
   const remove = async (id: string) => {
     const { error } = await supabase.from("concursos").delete().eq("id", id);
     if (error) {
-      toast.error("Error al eliminar.");
+      toast.error(t("admin.con.removeError"));
       return;
     }
-    toast.success("Concurso eliminado.");
+    toast.success(t("admin.con.removeToast"));
     refresh();
   };
 
@@ -666,18 +688,16 @@ function ConcursosAdmin() {
       <Card className="mb-4 border-gold/30 bg-card p-4 card-shadow">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-lg tracking-wide">Generación automática</h2>
-            <p className="text-xs text-muted-foreground">
-              Crea los concursos por día, por fase y el Mundial completo. Es idempotente: no duplica.
-            </p>
+            <h2 className="font-display text-lg tracking-wide">{t("admin.con.autoTitle")}</h2>
+            <p className="text-xs text-muted-foreground">{t("admin.con.autoDesc")}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="hero" size="sm" disabled={generating} onClick={() => generate(false)}>
               {generating ? <Loader2 className="mr-2 size-4 animate-spin" /> : <Sparkles className="size-4" />}
-              Generar concursos
+              {t("admin.con.generate")}
             </Button>
             <Button variant="secondary" size="sm" disabled={generating} onClick={() => generate(true)}>
-              + Incluir por partido
+              {t("admin.con.includePartidos")}
             </Button>
           </div>
         </div>
@@ -689,20 +709,20 @@ function ConcursosAdmin() {
         </div>
       ) : concursos.length === 0 ? (
         <Card className="border-border bg-card p-8 text-center text-sm text-muted-foreground card-shadow">
-          Aún no hay concursos. Usa “Generar concursos”.
+          {t("admin.con.empty")}
         </Card>
       ) : (
         <Card className="overflow-x-auto border-border bg-card card-shadow">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <th className="p-3">Concurso</th>
-                <th className="p-3">Modalidad</th>
-                <th className="p-3 text-center">Jug.</th>
-                <th className="p-3 text-right">Cuota</th>
-                <th className="p-3 text-right">Pozo</th>
-                <th className="p-3">Estado</th>
-                <th className="p-3 text-right">Acciones</th>
+                <th className="p-3">{t("admin.con.col.concurso")}</th>
+                <th className="p-3">{t("admin.con.col.modalidad")}</th>
+                <th className="p-3 text-center">{t("admin.con.col.jug")}</th>
+                <th className="p-3 text-right">{t("admin.con.col.cuota")}</th>
+                <th className="p-3 text-right">{t("admin.con.col.pozo")}</th>
+                <th className="p-3">{t("admin.con.col.estado")}</th>
+                <th className="p-3 text-right">{t("admin.con.col.acciones")}</th>
               </tr>
             </thead>
             <tbody>
@@ -718,7 +738,7 @@ function ConcursosAdmin() {
                       defaultValue={c.cuota}
                       onBlur={(e) => {
                         const v = Number(e.target.value);
-                        if (!Number.isNaN(v) && v !== c.cuota) updateField(c.id, { cuota: v }, "Cuota actualizada.");
+                        if (!Number.isNaN(v) && v !== c.cuota) updateField(c.id, { cuota: v }, t("admin.con.cuotaToast"));
                       }}
                       className="h-8 w-16 rounded-md border border-border bg-background px-2 text-right"
                     />
@@ -798,7 +818,7 @@ function ManageInscripcionesDialog({
   const setEstado = async (id: string, estado_pago: string) => {
     const { error } = await supabase.from("inscripciones").update({ estado_pago }).eq("id", id);
     if (error) {
-      toast.error("Error al actualizar inscripción.");
+      toast.error(t("admin.con.manageError"));
       return;
     }
     qc.invalidateQueries({ queryKey: ["admin-inscripciones", concurso?.id] });
@@ -810,14 +830,14 @@ function ManageInscripcionesDialog({
       <DialogContent className="max-h-[80vh] overflow-y-auto border-border bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl tracking-wide">{concurso?.nombre}</DialogTitle>
-          <DialogDescription>Gestiona los pagos de las inscripciones.</DialogDescription>
+          <DialogDescription>{t("admin.con.manageDesc")}</DialogDescription>
         </DialogHeader>
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : rows.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Aún no hay inscripciones.</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{t("admin.con.manageEmpty")}</p>
         ) : (
           <div className="divide-y divide-border">
             {rows.map((r) => (
@@ -852,5 +872,202 @@ function ManageInscripcionesDialog({
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ---------------- Section E: Demo console ---------------- */
+
+type LogLine = { time: string; level: "info" | "ok" | "error"; text: string };
+
+function DemoConsole() {
+  const t = useT();
+  const qc = useQueryClient();
+  const [players, setPlayers] = useState(8);
+  const [resultPct, setResultPct] = useState(60);
+  const [includePartidos, setIncludePartidos] = useState(true);
+  const [running, setRunning] = useState<"seed" | "reset" | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [log, setLog] = useState<LogLine[]>([]);
+
+  const push = (level: LogLine["level"], text: string) =>
+    setLog((prev) => [...prev, { time: new Date().toLocaleTimeString(), level, text }]);
+
+  const invalidateAll = () => {
+    qc.invalidateQueries({ queryKey: ["concursos-overview"] });
+    qc.invalidateQueries({ queryKey: ["admin-participants"] });
+    qc.invalidateQueries({ queryKey: ["leaderboard"] });
+    qc.invalidateQueries({ queryKey: ["matches"] });
+  };
+
+  const summarize = (data: Record<string, unknown>) => {
+    const parts: string[] = [];
+    if (data.players != null) parts.push(`${data.players} ${t("admin.demo.outPlayers")}`);
+    if (data.enrollments != null) parts.push(`${data.enrollments} ${t("admin.demo.outEnrollments")}`);
+    if (data.predictions != null) parts.push(`${data.predictions} ${t("admin.demo.outPredictions")}`);
+    if (data.results != null) parts.push(`${data.results} ${t("admin.demo.outResults")}`);
+    if (data.contests_created != null) parts.push(`${data.contests_created} ${t("admin.demo.outContests")}`);
+    return parts.join("  ·  ");
+  };
+
+  const runSeed = async () => {
+    setRunning("seed");
+    push("info", `${t("admin.demo.runSeed")} → players=${players}, result%=${resultPct}, partidos=${includePartidos}`);
+    const { data, error } = await supabase.rpc("seed_demo_data", {
+      _players: players,
+      _result_pct: resultPct,
+      _include_partidos: includePartidos,
+    });
+    setRunning(null);
+    if (error) {
+      push("error", error.message);
+      toast.error(t("admin.demo.error"));
+      return;
+    }
+    push("ok", summarize((data ?? {}) as Record<string, unknown>));
+    toast.success(summarize((data ?? {}) as Record<string, unknown>));
+    invalidateAll();
+  };
+
+  const runReset = async () => {
+    setConfirmReset(false);
+    setRunning("reset");
+    push("info", t("admin.demo.runReset"));
+    const { data, error } = await supabase.rpc("reset_demo_data");
+    setRunning(null);
+    if (error) {
+      push("error", error.message);
+      toast.error(t("admin.demo.error"));
+      return;
+    }
+    push("ok", summarize((data ?? {}) as Record<string, unknown>));
+    toast.success(summarize((data ?? {}) as Record<string, unknown>));
+    invalidateAll();
+  };
+
+  const lineColor: Record<LogLine["level"], string> = {
+    info: "text-muted-foreground",
+    ok: "text-primary",
+    error: "text-destructive",
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-gold/30 bg-card p-5 card-shadow">
+        <div className="flex items-start gap-3">
+          <FlaskConical className="mt-0.5 size-5 text-gold" />
+          <div>
+            <h2 className="font-display text-xl tracking-wide">{t("admin.demo.title")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("admin.demo.desc")}</p>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Parameters */}
+        <Card className="border-border bg-card p-5 card-shadow">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("admin.demo.paramsTitle")}
+          </h3>
+
+          <div className="mt-4 space-y-5">
+            <div>
+              <div className="flex items-center justify-between text-sm">
+                <label className="font-medium">{t("admin.demo.players")}</label>
+                <span className="font-display text-lg text-gold">{players}</span>
+              </div>
+              <Slider
+                className="mt-2"
+                min={1}
+                max={20}
+                step={1}
+                value={[players]}
+                onValueChange={(v) => setPlayers(v[0])}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between text-sm">
+                <label className="font-medium">{t("admin.demo.resultPct")}</label>
+                <span className="font-display text-lg text-gold">{resultPct}%</span>
+              </div>
+              <Slider
+                className="mt-2"
+                min={0}
+                max={100}
+                step={5}
+                value={[resultPct]}
+                onValueChange={(v) => setResultPct(v[0])}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">{t("admin.demo.includePartidos")}</label>
+              <Switch checked={includePartidos} onCheckedChange={setIncludePartidos} />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            <Button variant="hero" size="sm" disabled={running !== null} onClick={runSeed}>
+              {running === "seed" ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {running === "seed" ? t("admin.demo.seeding") : t("admin.demo.seed")}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={running !== null}
+              onClick={() => setConfirmReset(true)}
+            >
+              {running === "reset" ? (
+                <Loader2 className="mr-2 size-4 animate-spin" />
+              ) : (
+                <RotateCcw className="size-4" />
+              )}
+              {running === "reset" ? t("admin.demo.resetting") : t("admin.demo.reset")}
+            </Button>
+          </div>
+
+          <p className="mt-3 text-xs text-muted-foreground">⚠️ {t("admin.demo.warn")}</p>
+        </Card>
+
+        {/* Console output */}
+        <Card className="flex flex-col border-border bg-[oklch(0.18_0.01_260)] p-0 card-shadow">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+            <Terminal className="size-4 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("admin.demo.console")}
+            </span>
+          </div>
+          <div className="min-h-[220px] flex-1 overflow-y-auto p-4 font-mono text-xs leading-relaxed">
+            {log.length === 0 ? (
+              <p className="text-muted-foreground">{t("admin.demo.logEmpty")}</p>
+            ) : (
+              log.map((l, i) => (
+                <div key={i} className="whitespace-pre-wrap break-words">
+                  <span className="text-muted-foreground">[{l.time}]</span>{" "}
+                  <span className={lineColor[l.level]}>{l.text}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </div>
+
+      <AlertDialog open={confirmReset} onOpenChange={setConfirmReset}>
+        <AlertDialogContent className="border-border bg-card">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("admin.demo.resetTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("admin.demo.resetBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={runReset}>{t("common.confirm")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
