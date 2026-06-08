@@ -108,6 +108,19 @@ function ApprovedDashboard({ participantId, nombre }: { participantId: string; n
   const { data: matches = [] } = useMatches();
   const { data: preds = [] } = useMyPredictions(participantId);
   const { data: leaderboard = [] } = useLeaderboard();
+  const { data: inscripciones = [] } = useMyInscripciones(participantId);
+  const { data: concursos = [] } = useConcursosOverview();
+
+  const concursoById = useMemo(() => {
+    const m = new Map<string, (typeof concursos)[number]>();
+    for (const c of concursos) m.set(c.id, c);
+    return m;
+  }, [concursos]);
+
+  const misConcursos = inscripciones.length;
+  const adeudado = inscripciones
+    .filter((i) => i.estado_pago === "pendiente")
+    .reduce((s, i) => s + (concursoById.get(i.concurso_id)?.cuota ?? 0), 0);
 
   const predByMatch = useMemo(() => {
     const m = new Map<number, (typeof preds)[number]>();
