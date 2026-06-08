@@ -732,7 +732,7 @@ function ConcursosAdmin() {
                     >
                       {ESTADOS_OPC.map((s) => (
                         <option key={s} value={s}>
-                          {ESTADO_META[s].label}
+                          {t(ESTADO_META[s].labelKey)}
                         </option>
                       ))}
                     </select>
