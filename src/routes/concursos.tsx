@@ -1,20 +1,16 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Loader2, Users, ListChecks, Clock, ArrowRight, Trophy } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { Loader2, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConcursosOverview, useMyInscripciones } from "@/hooks/useConcursos";
+import { ConcursoGrid } from "@/components/ConcursoGrid";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { formatCAD, formatET } from "@/lib/format";
-import { useT, tStatic, type TFunc } from "@/lib/i18n";
+import { useT, tStatic } from "@/lib/i18n";
 import {
   MODALIDAD_LABEL,
-  MODALIDAD_ICON,
   ESTADO_META,
-  PAGO_META,
   type Modalidad,
   type EstadoConcurso,
-  type ConcursoOverview,
 } from "@/lib/concursos";
 
 export const Route = createFileRoute("/concursos")({
@@ -114,93 +110,10 @@ function ConcursosPage() {
           <p className="mt-1 text-sm text-muted-foreground">{t("concursos.empty.desc")}</p>
         </Card>
       ) : (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((c, i) => (
-            <ConcursoCard key={c.id} c={c} pago={inscMap.get(c.id)} index={i} t={t} />
-          ))}
+        <div className="mt-8">
+          <ConcursoGrid concursos={filtered} inscMap={inscMap} />
         </div>
       )}
     </main>
-  );
-}
-
-function ConcursoCard({
-  c,
-  pago,
-  index,
-  t,
-}: {
-  c: ConcursoOverview;
-  pago: string | undefined;
-  index: number;
-  t: TFunc;
-}) {
-  const Icon = MODALIDAD_ICON[c.modalidad];
-  const estadoMeta = ESTADO_META[c.estado];
-  const pozo = c.cuota * c.jugadores;
-  const pagoMeta = pago ? PAGO_META[pago as keyof typeof PAGO_META] : null;
-
-  return (
-    <Link
-      to="/concursos/$id"
-      params={{ id: c.id }}
-      className="animate-fade-up group block"
-      style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
-    >
-      <Card className="glass-card flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1 group-hover:border-primary/40">
-        <div className="flex items-start justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted/40 px-2 py-1 text-[11px] font-medium text-muted-foreground">
-            <Icon className="size-3.5" /> {t(MODALIDAD_LABEL[c.modalidad])}
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${estadoMeta.cls}`}
-          >
-            <span className={`size-1.5 rounded-full ${estadoMeta.dot}`} /> {t(estadoMeta.labelKey)}
-          </span>
-        </div>
-
-        <h2 className="mt-3 font-display text-xl leading-tight tracking-wide">{c.nombre}</h2>
-
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("common.pozo")}</p>
-            <p className="font-display text-lg text-gold">{formatCAD(pozo)}</p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/30 p-2.5">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{t("common.cuota")}</p>
-            <p className="font-display text-lg text-foreground">{formatCAD(c.cuota)}</p>
-          </div>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1">
-            <Users className="size-3.5" /> {c.jugadores}{" "}
-            {t(c.jugadores === 1 ? "common.player_one" : "common.player_other")}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <ListChecks className="size-3.5" /> {c.partidos}{" "}
-            {t(c.partidos === 1 ? "common.match_one" : "common.match_other")}
-          </span>
-          {c.deadline && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className="size-3.5" /> {formatET(c.deadline)}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
-          {pagoMeta ? (
-            <span className={`rounded-full border px-2 py-0.5 text-xs ${pagoMeta.cls}`}>
-              {pagoMeta.emoji} {t(pagoMeta.labelKey)}
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground">{t("concursos.notEnrolled")}</span>
-          )}
-          <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-            {t("common.see")} <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-          </span>
-        </div>
-      </Card>
-    </Link>
   );
 }
