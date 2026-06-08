@@ -15,6 +15,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
     "rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary";
   return (
     <>
+      <Link to="/jugar" className={linkCls} onClick={onNavigate}>
+        {t("nav.jugar")}
+      </Link>
       <Link to="/concursos" className={linkCls} onClick={onNavigate}>
         {t("nav.concursos")}
       </Link>
@@ -24,6 +27,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
       <Link to="/reglas" className={linkCls} onClick={onNavigate}>
         {t("nav.reglas")}
       </Link>
+
       {user && (
         <Link to="/dashboard" className={linkCls} onClick={onNavigate}>
           {t("nav.dashboard")}
