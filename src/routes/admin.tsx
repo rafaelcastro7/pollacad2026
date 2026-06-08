@@ -639,7 +639,7 @@ function ConcursosAdmin() {
     refresh();
   };
 
-  const updateField = async (id: string, fields: Record<string, unknown>, msg?: string) => {
+  const updateField = async (id: string, fields: { estado?: string; cuota?: number }, msg?: string) => {
     const { error } = await supabase.from("concursos").update(fields).eq("id", id);
     if (error) {
       toast.error("Error al actualizar.");
