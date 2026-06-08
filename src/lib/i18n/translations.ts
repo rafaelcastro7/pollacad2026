@@ -145,6 +145,13 @@ export const translations: Record<Lang, Dict> = {
     "detail.lb.title": "Tabla del concurso",
     "detail.lb.empty": "Aún no hay jugadores inscritos y aprobados en este concurso.",
     "detail.matches.title": "Partidos del concurso",
+    "detail.matches.empty": "Aún no hay partidos cargados para este concurso.",
+    "detail.matches.tapToPredict": "Toca un partido para registrar tu pronóstico.",
+    "detail.matches.loginHint": "Inicia sesión e inscríbete para pronosticar estos partidos.",
+    "detail.matches.joinHint": "Inscríbete en el concurso para poder pronosticar.",
+    "detail.matches.pendingHint": "Tu pago está pendiente. Cuando el organizador lo apruebe, podrás pronosticar.",
+    "detail.matches.tbaHint": "Los pronósticos se habilitarán cuando se definan los equipos.",
+    "detail.matches.yourPick": "Tu pronóstico: {l}–{v}",
 
     // ---------- Login ----------
     "login.meta.title": "Iniciar sesión — Polla Mundial 2026",
