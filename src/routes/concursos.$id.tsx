@@ -411,13 +411,11 @@ function ConcursoDetailPage() {
                       </>
                     );
 
-                    return interactive ? (
+                    return clickable ? (
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() =>
-                          router.navigate({ to: "/predictions", search: { concurso: id } })
-                        }
+                        onClick={() => handleMatchClick(m)}
                         className="block w-full p-3 text-left transition-colors hover:bg-secondary/60"
                       >
                         {inner}
