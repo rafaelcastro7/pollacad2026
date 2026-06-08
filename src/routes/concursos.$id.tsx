@@ -25,6 +25,16 @@ import { useMyPredictions } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { flag } from "@/lib/flags";
 import { formatCAD, formatET, dateLabelET, isLocked } from "@/lib/format";
 import { getMatchStatus } from "@/lib/matchStatus";
