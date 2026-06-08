@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Loader2, ArrowLeft, ArrowRight, Trophy } from "lucide-react";
+import { Loader2, ArrowLeft, ArrowRight, Trophy, Search, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConcursosOverview, useMyInscripciones } from "@/hooks/useConcursos";
 import { ConcursoGrid } from "@/components/ConcursoGrid";
@@ -8,6 +8,15 @@ import { ScoringExample } from "@/components/ScoringExample";
 import { ModalidadRules } from "@/components/ModalidadRules";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { dateLabelET } from "@/lib/format";
 import { useT, tStatic } from "@/lib/i18n";
 import {
   isModalidad,
@@ -71,7 +80,37 @@ function ModalidadLandingPage() {
     return map;
   }, [inscripciones]);
 
+  // Search & filter — only for the "partido" modality.
+  const isPartido = m === "partido";
+  const [query, setQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+
+  const dateOptions = useMemo(() => {
+    if (!isPartido) return [] as string[];
+    const set = new Set<string>();
+    for (const c of mine) if (c.deadline) set.add(dateLabelET(c.deadline));
+    return Array.from(set);
+  }, [mine, isPartido]);
+
+  const filtered = useMemo(() => {
+    if (!isPartido) return mine;
+    const q = query.trim().toLowerCase();
+    return mine.filter((c) => {
+      const matchesQuery = !q || c.nombre.toLowerCase().includes(q);
+      const matchesDate =
+        dateFilter === "all" || (c.deadline ? dateLabelET(c.deadline) === dateFilter : false);
+      return matchesQuery && matchesDate;
+    });
+  }, [mine, query, dateFilter, isPartido]);
+
+  const hasFilters = isPartido && (query.trim() !== "" || dateFilter !== "all");
+  const clearFilters = () => {
+    setQuery("");
+    setDateFilter("all");
+  };
+
   const steps = [1, 2, 3] as const;
+
 
   return (
     <main className="relative mx-auto max-w-5xl px-4 py-8">
@@ -149,6 +188,40 @@ function ModalidadLandingPage() {
           )}
         </div>
 
+        {/* Search & filter (partido only) */}
+        {isPartido && mine.length > 0 && (
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("mod.search.placeholder")}
+                className="pl-9"
+                aria-label={t("mod.search.placeholder")}
+              />
+            </div>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="sm:w-56" aria-label={t("mod.search.allDates")}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("mod.search.allDates")}</SelectItem>
+                {dateOptions.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
+                <X className="size-4" /> {t("mod.search.clear")}
+              </Button>
+            )}
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -163,9 +236,23 @@ function ModalidadLandingPage() {
             </Button>
 
           </Card>
+        ) : filtered.length === 0 ? (
+          <Card className="mt-4 border-border bg-card p-10 text-center card-shadow">
+            <div className="text-4xl">🔍</div>
+            <p className="mt-3 font-display text-xl tracking-wide">{t("mod.search.noResults")}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("mod.search.noResultsDesc")}</p>
+            <Button variant="secondary" className="mt-5" onClick={clearFilters}>
+              {t("mod.search.clear")}
+            </Button>
+          </Card>
         ) : (
           <div className="mt-4">
-            <ConcursoGrid concursos={mine} inscMap={inscMap} showModalidad={false} />
+            {isPartido && hasFilters && (
+              <p className="mb-3 text-xs text-muted-foreground">
+                {t("mod.search.results", { n: filtered.length, total: mine.length })}
+              </p>
+            )}
+            <ConcursoGrid concursos={filtered} inscMap={inscMap} showModalidad={false} />
           </div>
         )}
       </section>

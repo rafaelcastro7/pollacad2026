@@ -547,6 +547,12 @@ export const translations: Record<Lang, Dict> = {
     "mod.contests.emptyDesc": "Vuelve pronto o explora otra forma de jugar.",
     "mod.contests.count": "{n} disponibles",
     "mod.cta": "Ver concursos",
+    "mod.search.placeholder": "Buscar por equipo…",
+    "mod.search.allDates": "Todas las fechas",
+    "mod.search.results": "{n} de {total}",
+    "mod.search.noResults": "Sin resultados",
+    "mod.search.noResultsDesc": "Prueba con otro equipo u otra fecha.",
+    "mod.search.clear": "Limpiar filtros",
   },
 
   en: {
@@ -1064,6 +1070,12 @@ export const translations: Record<Lang, Dict> = {
     "mod.contests.emptyDesc": "Check back soon or explore another way to play.",
     "mod.contests.count": "{n} available",
     "mod.cta": "View contests",
+    "mod.search.placeholder": "Search by team…",
+    "mod.search.allDates": "All dates",
+    "mod.search.results": "{n} of {total}",
+    "mod.search.noResults": "No results",
+    "mod.search.noResultsDesc": "Try another team or date.",
+    "mod.search.clear": "Clear filters",
   },
 
   fr: {
@@ -1581,5 +1593,11 @@ export const translations: Record<Lang, Dict> = {
     "mod.contests.emptyDesc": "Revenez bientôt ou explorez une autre façon de jouer.",
     "mod.contests.count": "{n} disponibles",
     "mod.cta": "Voir les concours",
+    "mod.search.placeholder": "Rechercher par équipe…",
+    "mod.search.allDates": "Toutes les dates",
+    "mod.search.results": "{n} sur {total}",
+    "mod.search.noResults": "Aucun résultat",
+    "mod.search.noResultsDesc": "Essayez une autre équipe ou date.",
+    "mod.search.clear": "Effacer les filtres",
   },
 };
