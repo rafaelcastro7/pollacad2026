@@ -263,6 +263,20 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_concursos_overview: {
+        Args: never
+        Returns: {
+          alcance: Json
+          cuota: number
+          deadline: string
+          estado: string
+          id: string
+          jugadores: number
+          modalidad: string
+          nombre: string
+          partidos: number
+        }[]
+      }
       get_leaderboard: {
         Args: never
         Returns: {
