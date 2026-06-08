@@ -68,12 +68,22 @@ function ConcursoDetailPage() {
   const { data: matches = [], isLoading: ml } = useConcursoMatches(id);
   const { data: leaderboard = [] } = useConcursoLeaderboard(id);
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
+  const { data: predictions = [] } = useMyPredictions(participant?.id);
   const [joining, setJoining] = useState(false);
 
   const myInscripcion = inscripciones.find((i) => i.concurso_id === id);
   const pozo = concurso ? concurso.cuota * leaderboard.length : 0;
   const prizes = useMemo(() => calculatePrizes(leaderboard, pozo), [leaderboard, pozo]);
   const teamsDefined = matches.some((m) => m.equipo_local !== "Por definir");
+
+  const predByMatch = useMemo(() => {
+    const map = new Map<number, (typeof predictions)[number]>();
+    for (const p of predictions) map.set(p.match_id, p);
+    return map;
+  }, [predictions]);
+
+  // The player can predict once their account is approved and teams are set.
+  const canPredict = participant?.estado_pago === "aprobado" && teamsDefined;
 
   if (cl) {
     return (
