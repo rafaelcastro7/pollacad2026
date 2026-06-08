@@ -619,6 +619,7 @@ function Resumen({ onGoToInscripciones }: { onGoToInscripciones: () => void }) {
 const ESTADOS_OPC: EstadoConcurso[] = ["proximo", "abierto", "cerrado", "finalizado"];
 
 function ConcursosAdmin() {
+  const t = useT();
   const qc = useQueryClient();
   const { data: concursos = [], isLoading } = useConcursosOverview();
   const [generating, setGenerating] = useState(false);
