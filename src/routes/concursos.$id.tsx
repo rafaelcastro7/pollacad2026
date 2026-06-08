@@ -25,6 +25,16 @@ import { useMyPredictions } from "@/hooks/useData";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { flag } from "@/lib/flags";
 import { formatCAD, formatET, dateLabelET, isLocked } from "@/lib/format";
 import { getMatchStatus } from "@/lib/matchStatus";
@@ -70,6 +80,9 @@ function ConcursoDetailPage() {
   const { data: inscripciones = [] } = useMyInscripciones(participant?.id);
   const { data: predictions = [] } = useMyPredictions(participant?.id);
   const [joining, setJoining] = useState(false);
+  const [prompt, setPrompt] = useState<
+    { mode: "login" | "join" | "pending" | "tba"; match: string } | null
+  >(null);
 
   const myInscripcion = inscripciones.find((i) => i.concurso_id === id);
   const pozo = concurso ? concurso.cuota * leaderboard.length : 0;
@@ -110,6 +123,10 @@ function ConcursoDetailPage() {
     user && participant && !myInscripcion && (concurso.estado === "abierto" || concurso.estado === "cerrado");
 
   const join = async () => {
+    await joinContest();
+  };
+
+  const joinContest = async () => {
     if (!participant) return;
     setJoining(true);
     const { error } = await supabase.from("inscripciones").insert({
@@ -122,9 +139,35 @@ function ConcursoDetailPage() {
       toast.error(t("detail.join.error"));
       return;
     }
+    setPrompt(null);
     toast.success(t("detail.join.success"));
     qc.invalidateQueries({ queryKey: ["my-inscripciones", participant.id] });
     qc.invalidateQueries({ queryKey: ["concursos-overview"] });
+  };
+
+  // Decide what happens when a player taps a match row — always friendly & guided.
+  const handleMatchClick = (m: (typeof matches)[number]) => {
+    const label = `${m.equipo_local} vs ${m.equipo_visitante}`;
+    const defined = m.equipo_local !== "Por definir";
+    if (!user) {
+      setPrompt({ mode: "login", match: label });
+      return;
+    }
+    if (!participant) return; // organizer accounts don't play
+    if (!myInscripcion) {
+      setPrompt({ mode: "join", match: label });
+      return;
+    }
+    if (myInscripcion.estado_pago !== "aprobado") {
+      setPrompt({ mode: "pending", match: label });
+      return;
+    }
+    if (!defined) {
+      setPrompt({ mode: "tba", match: label });
+      return;
+    }
+    if (isLocked(m.kickoff_time)) return; // predictions already closed
+    router.navigate({ to: "/predictions", search: { concurso: id } });
   };
 
   // Group matches by ET date for display
@@ -320,7 +363,15 @@ function ConcursoDetailPage() {
                     const pred = predByMatch.get(m.id) ?? null;
                     const hasPred = pred?.goles_local_pred != null && pred?.goles_visitante_pred != null;
                     const status = getMatchStatus(m, pred);
-                    const interactive = canPredict && defined && !locked;
+                    // Rows are tappable whenever tapping leads to a guided next
+                    // step (enroll, sign in, info) — not just when predicting.
+                    const clickable =
+                      !user ||
+                      (!!participant &&
+                        (!myInscripcion ||
+                          myInscripcion.estado_pago !== "aprobado" ||
+                          !defined ||
+                          !locked));
 
                     const inner = (
                       <>
@@ -353,19 +404,17 @@ function ConcursoDetailPage() {
                             >
                               {status.emoji} {t(status.labelKey)}
                             </span>
-                            {interactive && <ChevronRight className="size-4 text-primary" />}
+                            {clickable && <ChevronRight className="size-4 text-primary" />}
                           </span>
                         </div>
                       </>
                     );
 
-                    return interactive ? (
+                    return clickable ? (
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() =>
-                          router.navigate({ to: "/predictions", search: { concurso: id } })
-                        }
+                        onClick={() => handleMatchClick(m)}
                         className="block w-full p-3 text-left transition-colors hover:bg-secondary/60"
                       >
                         {inner}
@@ -382,6 +431,80 @@ function ConcursoDetailPage() {
           </div>
         )}
       </section>
+
+      {/* Guided prompt shown when a player taps a match before being ready */}
+      <AlertDialog open={prompt !== null} onOpenChange={(o) => !o && setPrompt(null)}>
+        <AlertDialogContent>
+          {prompt?.mode === "login" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.loginTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.loginDesc", { match: prompt.match })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("detail.joinPrompt.cancel")}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => router.navigate({ to: "/login" })}>
+                  {t("detail.joinPrompt.login")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "join" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.title")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.desc", {
+                    match: prompt.match,
+                    fee: formatCAD(concurso.cuota),
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("detail.joinPrompt.cancel")}</AlertDialogCancel>
+                <Button variant="hero" disabled={joining} onClick={joinContest}>
+                  {joining ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                  {t("detail.joinPrompt.confirm", { fee: formatCAD(concurso.cuota) })}
+                </Button>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "pending" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.joinPrompt.pendingTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.pendingDesc", {
+                    match: prompt.match,
+                    fee: formatCAD(concurso.cuota),
+                  })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>{t("detail.joinPrompt.ok")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+
+          {prompt?.mode === "tba" && (
+            <>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("detail.matches.title")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("detail.joinPrompt.tba")}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogAction>{t("detail.joinPrompt.ok")}</AlertDialogAction>
+              </AlertDialogFooter>
+            </>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
 
     </main>
   );
