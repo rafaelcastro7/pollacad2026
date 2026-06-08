@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Loader2, ArrowLeft, ArrowRight, Trophy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useConcursosOverview, useMyInscripciones } from "@/hooks/useConcursos";
