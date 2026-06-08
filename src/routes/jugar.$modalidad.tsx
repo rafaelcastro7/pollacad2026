@@ -80,7 +80,37 @@ function ModalidadLandingPage() {
     return map;
   }, [inscripciones]);
 
+  // Search & filter — only for the "partido" modality.
+  const isPartido = m === "partido";
+  const [query, setQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+
+  const dateOptions = useMemo(() => {
+    if (!isPartido) return [] as string[];
+    const set = new Set<string>();
+    for (const c of mine) if (c.deadline) set.add(dateLabelET(c.deadline));
+    return Array.from(set);
+  }, [mine, isPartido]);
+
+  const filtered = useMemo(() => {
+    if (!isPartido) return mine;
+    const q = query.trim().toLowerCase();
+    return mine.filter((c) => {
+      const matchesQuery = !q || c.nombre.toLowerCase().includes(q);
+      const matchesDate =
+        dateFilter === "all" || (c.deadline ? dateLabelET(c.deadline) === dateFilter : false);
+      return matchesQuery && matchesDate;
+    });
+  }, [mine, query, dateFilter, isPartido]);
+
+  const hasFilters = isPartido && (query.trim() !== "" || dateFilter !== "all");
+  const clearFilters = () => {
+    setQuery("");
+    setDateFilter("all");
+  };
+
   const steps = [1, 2, 3] as const;
+
 
   return (
     <main className="relative mx-auto max-w-5xl px-4 py-8">
