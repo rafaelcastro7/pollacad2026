@@ -709,7 +709,7 @@ function ConcursosAdmin() {
               {concursos.map((c) => (
                 <tr key={c.id} className="border-b border-border/60">
                   <td className="p-3 font-medium">{c.nombre}</td>
-                  <td className="p-3 text-muted-foreground">{MODALIDAD_LABEL[c.modalidad as Modalidad]}</td>
+                  <td className="p-3 text-muted-foreground">{t(MODALIDAD_LABEL[c.modalidad as Modalidad])}</td>
                   <td className="p-3 text-center">{c.jugadores}</td>
                   <td className="p-3 text-right">
                     <input
